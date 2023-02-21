@@ -31,12 +31,17 @@ bash git clone https://github.com/Motorenger/Meduzzen_Internship.git
 cd Meduzzen_Internship
 ```
 
-Run server
+Build Docker image
 ```
-uvicorn app.main:app --reload
+docker build -t app .
+```
+
+Run conteiner
+```
+docker run --name my_app -p 80:80 app
 ```
 
 Run test
 ```
-pytest -v
+docker exec mycontainer pytest -v
 ```
