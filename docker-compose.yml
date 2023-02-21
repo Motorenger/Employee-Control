@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: .
+    command: python app/main.py
+    volumes:
+      - ./app:/usr/src/backend/app
+    ports:
+      - 80:80
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+  db:
+    image: postgres:15.1
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    ports:
+      - 5432:5432
+  redis:
+    image: redis:alpine
+
+volumes:
+  postgres_data:
