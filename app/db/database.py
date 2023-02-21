@@ -1,5 +1,15 @@
+import aioredis
+
 from databases import Database
 
 import system_config
 
-db = Database(system_config.DATABASE_URL)
+
+async def get_db():
+    async with Database(system_config.DATABASE_URL) as db:
+        yield db
+
+
+async def get_redis():
+    async with aioredis.from_url(system_config.REDIS_URL,  db=1) as redis:
+        yield redis

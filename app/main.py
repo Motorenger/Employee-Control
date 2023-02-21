@@ -1,11 +1,14 @@
 import uvicorn
+
 import aioredis
 
-from fastapi import FastAPI
+from databases import Database
+
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 import system_config
-from db.database import db
+from db.database import get_db, get_redis
 
 
 app = FastAPI()
@@ -26,12 +29,15 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    # await get_db.connect()
+    # await get_redis()
+    db = await anext(get_db())
     await db.connect()
-    redis = await aioredis.from_url("redis://localhost",  db=1)
 
 
 @app.on_event("shutdown")
 async def shutdown():
+    db = await anext(get_db())
     await db.disconnect()
 
 
