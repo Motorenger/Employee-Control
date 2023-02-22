@@ -11,7 +11,8 @@ If you are trying to use this project for the first time, you can get up and run
 | :----------------------------------------------------------: | :----------------: |
 |           [**fastapi**](https://pypi.org/project/fastapi/)          |      **4.1.6**       |
 |           [**uvicorn**](https://pypi.org/project/uvicorn/)          |      **0.20.0**       |
-|           [**pytest-asyncio**](https://pypi.org/project/pytest-asyncio/)        |      **0.20.3**       |
+|           [**databases**](https://pypi.org/project/databases/)        |      **0.7.0**       |
+|           [**aioredis[asyncpg]**](https://pypi.org/project/aioredis/)        |      **2.0.1**       |
 
 
 </div>

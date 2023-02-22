@@ -1,5 +1,12 @@
-from fastapi import FastAPI
+import uvicorn
+
+from databases import Database
+
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+
+import system_config
+from db.database import get_db
 
 
 app = FastAPI()
@@ -18,6 +25,18 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def startup():
+    db = await get_db()
+    await db.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    db = await get_db()
+    await db.disconnect()
+
+
 @app.get("/")
 async def health_check():
     return {
@@ -25,3 +44,7 @@ async def health_check():
         "detail": "ok",
         "result": "working"
     }
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host=system_config.HOST, port=system_config.PORT, log_level="info", reload=True)

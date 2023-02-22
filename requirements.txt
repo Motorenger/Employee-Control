@@ -21,3 +21,8 @@ starlette==0.25.0
 tomli==2.0.1
 typing_extensions==4.5.0
 uvicorn==0.20.0
+sqlalchemy==1.4.46
+greenlet==2.0.2
+databases==0.7.0
+aioredis==2.0.1
+asyncpg==0.27.0
