@@ -10,9 +10,10 @@ from system_config import envs
 Base = declarative_base()
 
 
-async def get_db():
-    async with Database(envs["DATABASE_URL"]) as db:
-        return db
+db = Database(envs["DATABASE_URL"])
+
+def get_db():
+    return db
 
 
 async def get_redis():

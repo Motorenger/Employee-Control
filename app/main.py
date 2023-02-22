@@ -33,30 +33,32 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    db = await get_db()
+    db = get_db()
     await db.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    db = await get_db()
+    db = get_db()
     await db.disconnect()
 
 
 @app.get("/")
 async def health_check():
     log.info("I'm logging")
-
-
+    query = "SELECT * FROM users"
+    db = get_db()
+    users = await db.fetch_one(query=query)
     return {
         "status_code": 200,
         "detail": "ok",
         "result": "working",
+        "users": users
     }
 
 
 if __name__ == "__main__":
-
+    
     uvicorn.run("main:app",
                 host=envs["HOST"],
                 port=envs["PORT"],
