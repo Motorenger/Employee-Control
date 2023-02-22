@@ -17,8 +17,8 @@ Base = declarative_base()
 
 
 async def get_db():
-    async with Database(envs["DATABASE_URL"]) as db:
-        yield db
+    async with Database(system_config.DATABASE_URL) as db:
+        return db
 
 
 async def get_redis():

@@ -33,14 +33,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-
-    db = await anext(get_db())
+    db = await get_db()
     await db.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    db = await anext(get_db())
+    db = await get_db()
     await db.disconnect()
 
 
