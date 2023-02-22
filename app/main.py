@@ -7,7 +7,7 @@ from databases import Database
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
-import system_config
+from system_config import envs
 from db.database import get_db, get_redis
 
 
@@ -43,12 +43,16 @@ async def shutdown():
 
 @app.get("/")
 async def health_check():
+    db = await anext(get_db())
+    query = "SELECT * FROM users"
+    users = await db.fetch_all(query=query)
     return {
         "status_code": 200,
         "detail": "ok",
-        "result": "working"
+        "result": "working",
     }
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host=system_config.HOST, port=system_config.PORT, log_level="info", reload=True)
+
+    uvicorn.run("main:app", host=envs["HOST"], port=envs["PORT"], log_level="info", reload=True)
