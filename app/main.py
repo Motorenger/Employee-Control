@@ -1,17 +1,21 @@
+import logging
+from logging.config import dictConfig
+
 import uvicorn
 
-import aioredis
-
-from databases import Database
-
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from system_config import envs
-from db.database import get_db, get_redis
+from db.database import get_db
+from core.log_config import app_dict_config, init_loggers
 
+
+init_loggers()
 
 app = FastAPI()
+
+log = logging.getLogger("app_logger")
 
 origins = [
     "http://localhost",
@@ -29,8 +33,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # await get_db.connect()
-    # await get_redis()
+
     db = await anext(get_db())
     await db.connect()
 
@@ -43,9 +46,9 @@ async def shutdown():
 
 @app.get("/")
 async def health_check():
-    db = await anext(get_db())
-    query = "SELECT * FROM users"
-    users = await db.fetch_all(query=query)
+    log.info("I'm logging")
+
+
     return {
         "status_code": 200,
         "detail": "ok",
@@ -55,4 +58,8 @@ async def health_check():
 
 if __name__ == "__main__":
 
-    uvicorn.run("main:app", host=envs["HOST"], port=envs["PORT"], log_level="info", reload=True)
+    uvicorn.run("main:app",
+                host=envs["HOST"],
+                port=envs["PORT"],
+                reload=True,
+                )
