@@ -7,6 +7,7 @@ from starlette.testclient import TestClient
 from httpx import AsyncClient
 
 #import your app
+from app import system_config
 from app.main import app
 
 
