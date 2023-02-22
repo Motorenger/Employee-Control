@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-import system_config
+from system_config import envs
 from db.database import Base
 from db.models import User
 
@@ -15,7 +15,7 @@ from db.models import User
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option("sqlalchemy.url", system_config.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", envs["DATABASE_URL"])
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

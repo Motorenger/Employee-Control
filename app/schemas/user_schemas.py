@@ -1,8 +1,11 @@
+import datetime
+
 from pydantic import BaseModel, Field, EmailStr
 
 
 class UserBase(BaseModel):
     email: EmailStr
+    username: str | None = None
 
 
 class UserCreate(UserBase):
@@ -14,7 +17,8 @@ class UserCreate(UserBase):
 
 class User(BaseUser):
     id: int
-    username: str | None = None
+    is_active: bool
+    date_joined: datetime
 
     class Config:
         orm_mode = True
@@ -23,5 +27,7 @@ class User(BaseUser):
                 "id": 235,
                 "username": "Bobpop",
                 "email": "ai_bob@email.com",
+                "is_active": "True",
+                "date_joined": "time",
             }
         }
