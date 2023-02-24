@@ -8,7 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True)
-    password = Column(String(8))
+    password = Column(String)
     username = Column(String(20))
     is_active = Column(Boolean, default=False)
     date_joined = Column(DateTime)

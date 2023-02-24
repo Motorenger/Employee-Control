@@ -1,8 +1,8 @@
-"""init
+"""users
 
-Revision ID: b16d1dd935e9
+Revision ID: a306934aa099
 Revises: 
-Create Date: 2023-02-22 08:28:22.273774
+Create Date: 2023-02-23 09:05:39.851074
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import databases
 
 
 # revision identifiers, used by Alembic.
-revision = 'b16d1dd935e9'
+revision = 'a306934aa099'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,10 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(), nullable=True),
-    sa.Column('password', sa.String(length=8), nullable=True),
+    sa.Column('password', sa.String(), nullable=True),
+    sa.Column('username', sa.String(length=20), nullable=True),
+    sa.Column('is_active', sa.Boolean(), nullable=True),
+    sa.Column('date_joined', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )

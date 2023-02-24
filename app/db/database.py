@@ -4,13 +4,14 @@ from databases import Database
 
 from sqlalchemy.ext.declarative import declarative_base
 
-from system_config import envs
+from utils.system_config import envs
 
 
 Base = declarative_base()
 
 
 db = Database(envs["DATABASE_URL"])
+
 
 def get_db():
     return db

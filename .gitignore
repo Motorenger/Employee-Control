@@ -130,3 +130,6 @@ dmypy.json
 
 Pipfile
 Pipfile.lock
+
+.env.db
+.env.db.test
