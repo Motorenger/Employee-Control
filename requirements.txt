@@ -31,3 +31,4 @@ aiosqlite
 alembic==1.9.4
 passlib
 fastapi-pagination
+pytest-env

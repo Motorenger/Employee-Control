@@ -1,5 +1,7 @@
 import aioredis
 
+import databases
+
 from databases import Database
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -13,8 +15,14 @@ Base = declarative_base()
 db = Database(envs["DATABASE_URL"])
 
 
-def get_db():
-    return db
+if envs["ENVIRONMENT"] == "TESTING":
+    database = databases.Database(envs["DATABASE_URL_TEST"], force_rollback=True)
+else:
+    database = databases.Database(envs["DATABASE_URL"])
+
+
+def get_db() -> databases.Database:
+    return database
 
 
 async def get_redis():

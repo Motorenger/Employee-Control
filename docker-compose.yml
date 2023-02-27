@@ -20,6 +20,12 @@ services:
     env_file:
       - ./.env.db
     ports:
-      - ${POSTGRES_PORT}:${P_PORT}
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+  db_test:
+    image: postgres:15.1
+    env_file:
+      - ./.env.db
+    ports:
+      - ${POSTGRES_PORT_TEST}:${POSTGRES_PORT_TEST}
 volumes:
   postgres_data:

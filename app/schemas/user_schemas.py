@@ -15,8 +15,8 @@ class UserCreate(UserBase):
         orm_mode = True
 
 
-class UserUpdate(UserBase):
-    email: EmailStr | None = None
+class UserUpdate(BaseModel):
+    username: str
 
 
 class User(UserBase):

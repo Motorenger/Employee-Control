@@ -4,7 +4,7 @@ from httpx import AsyncClient
 async def test_get_users(ac: AsyncClient):
     response = await ac.get("/users/")
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json()["items"] == []
 
 
 async def test_bad_create_user_not_passord(ac: AsyncClient):
@@ -66,7 +66,7 @@ async def test_create_user_two(ac: AsyncClient):
     }
     response = await ac.post("/users/create", json=payload)
     assert response.status_code == 200
-    assert response.json()["id"] == 1
+    assert response.json()["id"] == 2
 
 
 async def test_create_user_three(ac: AsyncClient):
@@ -77,14 +77,13 @@ async def test_create_user_three(ac: AsyncClient):
     }
     response = await ac.post("/users/create", json=payload)
     assert response.status_code == 200
-    assert response.json()["id"] == 1
+    assert response.json()["id"] == 3
 
 
 async def test_get_users_list(ac: AsyncClient):
-    response = await ac.get("/users")
+    response = await ac.get("/users/")
     assert response.status_code == 200
-    assert response.json()["id"] == 1
-    assert len(response.json()) == 3
+    assert len(response.json()["items"]) == 3
 
 
 async def test_get_user_by_id(ac: AsyncClient):
@@ -102,10 +101,9 @@ async def test_bad_get_user_by_id(ac: AsyncClient):
 
 async def test_update_user_one(ac: AsyncClient):
     payload = {
-      "email": "test5@email.com",
       "username": "test1NEW"
     }
-    response = await ac.put("/user/1", json=payload)
+    response = await ac.put("/users/1", json=payload)
     assert response.status_code == 200
     assert response.json()["id"] == 1
 
@@ -131,6 +129,6 @@ async def test_delete_user_one(ac: AsyncClient):
 
 
 async def test_get_users_list_after_delete(ac: AsyncClient):
-    response = await ac.get("/users")
+    response = await ac.get("/users/")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert len(response.json()["items"]) == 2

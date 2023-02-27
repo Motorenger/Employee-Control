@@ -3,3 +3,7 @@ pythonpath = [
   ".", "app",
 ]
 asyncio_mode="auto"
+
+env = [
+  "ENVIRONMENT=TESTING"
+]
