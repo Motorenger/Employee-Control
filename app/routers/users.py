@@ -27,7 +27,6 @@ async def users_list(params: Params = Depends(), db: Database = Depends(get_db))
 async def users_create(user: UserCreate, db: Database = Depends(get_db)):
     user_service = UserService(db)
 
-    user = user.dict()
     user = await user_service.create_user(user)
     return user
 

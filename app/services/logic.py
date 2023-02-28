@@ -3,6 +3,7 @@ from datetime import datetime
 from fastapi import HTTPException
 
 from utils.hashing import get_password_hash
+from schemas.user_schemas import UserInDB
 
 
 class UserService:
@@ -25,6 +26,7 @@ class UserService:
         return users
 
     async def retrieve_user(self, user_id: int) -> dict:
+
         query = "SELECT * FROM users WHERE id = :id"
         user = await self.db.fetch_one(query, values={"id": user_id})
         if user is None:
@@ -32,9 +34,9 @@ class UserService:
         return user
 
     async def create_user(self, user: dict) -> dict:
-        if self.check_for_existing(email=user["email"]):
+        if await self.check_for_existing(email=user.email):
             raise HTTPException(status_code=400, detail="User is not unique.")
-
+        user = user.dict()
         user["password"] = get_password_hash(user["password"])
         user["is_active"] = False
         user["date_joined"] = datetime.now()
@@ -64,3 +66,21 @@ class UserService:
             raise HTTPException(status_code=404, detail="User not found")
         query = "DELETE FROM users WHERE id = :id"
         await self.db.execute(query, values={"id": user_id})
+
+    async def login_user(self, username):
+        query = "SELECT * FROM users WHERE username = :username"
+        user = await self.db.fetch_one(query, values={"username": username})
+        if not user:
+            raise HTTPException(status_code=400, detail="Incorrect username or password")
+        return user
+
+    async def decode_token(self, token):
+        query = "SELECT * FROM users WHERE username = :username"
+        user = await self.db.fetch_one(query, values={"username": token})
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return UserInDB(**user)

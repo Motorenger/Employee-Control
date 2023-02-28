@@ -35,3 +35,6 @@ class User(UserBase):
                 "date_joined": "time",
             }
         }
+
+class UserInDB(User):
+    password: str
