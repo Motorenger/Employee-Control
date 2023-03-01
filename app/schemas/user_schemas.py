@@ -38,3 +38,7 @@ class User(UserBase):
 
 class UserInDB(User):
     password: str
+
+
+class UserList(BaseModel):
+    users: list[User] = []

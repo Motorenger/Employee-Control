@@ -1,7 +1,5 @@
 import aioredis
 
-import databases
-
 from databases import Database
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,19 +7,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from utils.system_config import envs
 
 
-Base = declarative_base()
-
-
 db = Database(envs["DATABASE_URL"])
 
 
 if envs["ENVIRONMENT"] == "TESTING":
-    database = databases.Database(envs["DATABASE_URL_TEST"], force_rollback=True)
+    database = Database(envs["DATABASE_URL_TEST"], force_rollback=True)
 else:
-    database = databases.Database(envs["DATABASE_URL"])
+    database = Database(envs["DATABASE_URL"])
 
 
-def get_db() -> databases.Database:
+def get_db() -> Database:
     return database
 
 
