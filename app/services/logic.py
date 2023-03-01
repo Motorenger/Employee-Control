@@ -63,9 +63,8 @@ class UserService:
         user = await self.db.fetch_one(query)
         return User(**user)
 
-    async def delete_user(self, user_id) -> str:
+    async def delete_user(self, user_id):
         if not await self.check_for_existing(user_id=user_id):
             raise HTTPException(status_code=404, detail="User not found")
         query = self.users.delete().where(self.users.c.id == user_id)
         await self.db.execute(query)
-        return {"detail": "User deleted successfully"}

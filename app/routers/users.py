@@ -47,9 +47,8 @@ async def users_update(user_id: int, user_data: UserUpdate, db: Database = Depen
     return user
 
 
-@router.delete("/{user_id}", status_code=200)
-async def users_delete(user_id: int, db: Database = Depends(get_db)) -> dict:
+@router.delete("/{user_id}", status_code=204)
+async def users_delete(user_id: int, db: Database = Depends(get_db)):
     user_service = UserService(db=db)
 
-    res = await user_service.delete_user(user_id=user_id)
-    return res
+    await user_service.delete_user(user_id=user_id)
