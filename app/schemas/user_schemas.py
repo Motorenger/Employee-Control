@@ -35,3 +35,7 @@ class User(UserBase):
                 "date_joined": "time",
             }
         }
+
+
+class UserList(BaseModel):
+    users: list[User] = []
