@@ -12,7 +12,7 @@ idna==3.4
 iniconfig==2.0.0
 packaging==23.0
 pluggy==1.0.0
-pydantic==1.10.5
+pydantic[email]==1.10.5
 pytest==7.2.1
 pytest-asyncio==0.20.3
 rfc3986==1.5.0
@@ -26,4 +26,9 @@ greenlet==2.0.2
 databases==0.7.0
 aioredis==2.0.1
 asyncpg==0.27.0
+psycopg2-binary
+aiosqlite
 alembic==1.9.4
+passlib
+fastapi-pagination
+pytest-env

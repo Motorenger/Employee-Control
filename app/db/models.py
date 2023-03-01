@@ -1,14 +1,16 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
-
-from db.database import Base
+import sqlalchemy
 
 
-class User(Base):
-    __tablename__ = "users"
+metadata = sqlalchemy.MetaData()
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True)
-    password = Column(String(8))
-    username = Column(String(20))
-    is_active = Column(Boolean, default=False)
-    date_joined = Column(DateTime)
+
+users = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("email", sqlalchemy.String),
+    sqlalchemy.Column("password", sqlalchemy.String),
+    sqlalchemy.Column("username", sqlalchemy.String(20)),
+    sqlalchemy.Column("is_active", sqlalchemy.Boolean),
+    sqlalchemy.Column("date_joined", sqlalchemy.DateTime),
+)

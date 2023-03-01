@@ -3,7 +3,7 @@ services:
     build: .
     command: python app/main.py
     volumes:
-      - ./app:/usr/src/backend/app
+      - ./:/usr/src/backend/
     ports:
       - ${PORT}:${PORT}
     env_file:
@@ -11,16 +11,21 @@ services:
     depends_on:
       - db
       - redis
+  redis:
+    image: redis:alpine
   db:
     image: postgres:15.1
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env
+      - ./.env.db
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
-  redis:
-    image: redis:alpine
-
+  db_test:
+    image: postgres:15.1
+    env_file:
+      - ./.env.db
+    ports:
+      - ${POSTGRES_PORT_TEST}:${POSTGRES_PORT_TEST}
 volumes:
   postgres_data:

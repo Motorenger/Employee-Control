@@ -4,16 +4,20 @@ from databases import Database
 
 from sqlalchemy.ext.declarative import declarative_base
 
-from system_config import envs
-
-
-Base = declarative_base()
+from utils.system_config import envs
 
 
 db = Database(envs["DATABASE_URL"])
 
-def get_db():
-    return db
+
+if envs["ENVIRONMENT"] == "TESTING":
+    database = Database(envs["DATABASE_URL_TEST"], force_rollback=True)
+else:
+    database = Database(envs["DATABASE_URL"])
+
+
+def get_db() -> Database:
+    return database
 
 
 async def get_redis():

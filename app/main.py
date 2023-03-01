@@ -1,14 +1,14 @@
 import logging
-from logging.config import dictConfig
 
 import uvicorn
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from system_config import envs
+from utils.system_config import envs
 from db.database import get_db
-from core.log_config import app_dict_config, init_loggers
+from core.log_config import init_loggers
+from routers import users
 
 
 init_loggers()
@@ -31,6 +31,9 @@ app.add_middleware(
 )
 
 
+app.include_router(users.router)
+
+
 @app.on_event("startup")
 async def startup():
     db = get_db()
@@ -46,19 +49,15 @@ async def shutdown():
 @app.get("/")
 async def health_check():
     log.info("I'm logging")
-    query = "SELECT * FROM users"
-    db = get_db()
-    users = await db.fetch_one(query=query)
     return {
         "status_code": 200,
         "detail": "ok",
         "result": "working",
-        "users": users
     }
 
 
 if __name__ == "__main__":
-    
+
     uvicorn.run("main:app",
                 host=envs["HOST"],
                 port=envs["PORT"],

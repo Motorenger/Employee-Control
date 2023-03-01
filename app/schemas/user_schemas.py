@@ -9,16 +9,20 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: int = Field(max_length=8, min_length=8)
+    password: str = Field(max_length=8, min_length=8)
 
     class Config:
         orm_mode = True
 
 
-class User(BaseUser):
+class UserUpdate(BaseModel):
+    username: str
+
+
+class User(UserBase):
     id: int
-    is_active: bool
-    date_joined: datetime
+    is_active: bool | None = None
+    date_joined: datetime.datetime | None = None
 
     class Config:
         orm_mode = True
@@ -31,3 +35,7 @@ class User(BaseUser):
                 "date_joined": "time",
             }
         }
+
+
+class UserList(BaseModel):
+    users: list[User] = []
