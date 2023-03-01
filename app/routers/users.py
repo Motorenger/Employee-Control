@@ -32,7 +32,7 @@ async def users_create(user: UserCreate, db: Database = Depends(get_db)) -> User
 
 
 @router.get("/{user_id}", response_model=User)
-async def users_retrieve(user_id: int, db: Database = Depends(get_db)) -> User:
+async def users_retrieve(user_id: int = None, db: Database = Depends(get_db)) -> User:
     user_service = UserService(db=db)
 
     user = await user_service.retrieve_user(user_id=user_id)
