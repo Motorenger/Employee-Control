@@ -10,7 +10,7 @@ from db.database import get_db
 from utils.system_config import envs
 from utils.hashing import verify_password
 from schemas.user_schemas import UserBase, User, UserInDB
-from schemas.token import TokenData
+from schemas.token import TokenData, Token
 from services.logic import UserService
 
 
@@ -26,7 +26,7 @@ def fake_decode_token(token):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Database = Depends(get_db)) -> User:
-    user_service = UserService(db)
+    user_service = UserService(db=db)
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,7 +48,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Database = D
     return User(**user.dict())
 
 
-async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Database = Depends(get_db)):
+async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Database = Depends(get_db)) -> User:
     user_service = UserService(db=db)
 
     user = await user_service.retrieve_user(username=form_data.username)
@@ -59,9 +59,9 @@ async def authenticate_user(form_data: OAuth2PasswordRequestForm = Depends(), db
     return user
 
 
-def create_access_token(data: dict):
+def create_access_token(data: dict) -> Token:
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=30)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, envs["SECRET_KEY"], algorithm=ALGORITHM)
-    return encoded_jwt
+    return Token(token=encoded_jwt)
