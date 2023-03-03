@@ -32,5 +32,5 @@ alembic==1.9.4
 passlib[bcrypt]
 fastapi-pagination
 pytest-env
-python-jose[cryptography]
+pyjwt[crypto]
 python-multipart

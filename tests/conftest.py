@@ -15,12 +15,11 @@ from httpx import AsyncClient
 #import your app
 from app.main import app
 #import your metadata
-from app.db.models import Base
+from app.db.models import metadata
 #import your test urls for db
 from app.utils.system_config import envs
 #import your get_db func
 from app.db.database import get_db, database
-from app.db.models import User
 
 
 engine_test = create_async_engine(envs["DATABASE_URL_TEST"], poolclass=NullPool)
@@ -43,11 +42,11 @@ def test_app():
 async def prepare_database():
     await database.connect()
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(metadata.create_all)
     yield
     await database.disconnect()
     async with engine_test.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(metadata.drop_all)
 
 
 @pytest.fixture(scope="session")

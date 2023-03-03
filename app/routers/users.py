@@ -17,6 +17,7 @@ router = APIRouter(
 
 @router.get("/", response_model=Page[User])
 async def users_list(params: Params = Depends(), db: Database = Depends(get_db)) -> Page:
+
     user_service = UserService(db=db)
 
     users = await user_service.get_users()

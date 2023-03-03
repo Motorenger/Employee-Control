@@ -2,8 +2,6 @@ import aioredis
 
 from databases import Database
 
-from sqlalchemy.ext.declarative import declarative_base
-
 from utils.system_config import envs
 
 

@@ -2,13 +2,11 @@ import logging
 
 import uvicorn
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
-from schemas.user_schemas import UserBase
 from utils.system_config import envs
-from utils.auth import get_current_user
 from db.database import get_db
 from core.log_config import init_loggers
 from routers import users, auth
@@ -53,13 +51,12 @@ async def shutdown():
 
 
 @app.get("/")
-async def health_check(current_user: UserBase = Depends(get_current_user)):
+async def health_check():
     log.info("I'm logging")
     return {
         "status_code": 200,
         "detail": "ok",
         "result": "working",
-        "current_user": current_user
     }
 
 

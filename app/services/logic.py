@@ -30,16 +30,19 @@ class UserService:
         users = await self.db.fetch_all(query)
         return UserList(users=users)
 
-    async def retrieve_user(self, user_id: int = None, username: str = None) -> User:
+    async def retrieve_user(self, user_id: int = None, username: str = None, email: str = None, p: bool = False) -> User:
         if user_id:
             query = self.users.select().where(self.users.c.id == user_id)
         elif username:
             query = self.users.select().where(self.users.c.username == username)
-
+        elif email:
+            query = self.users.select().where(self.users.c.email == email)
+            user = await self.db.fetch_one(query)
+            return user
         user = await self.db.fetch_one(query)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
-        if username:
+        if username or p:
             return UserInDB(**user)
         return User(**user)
 
@@ -71,43 +74,6 @@ class UserService:
 
     async def delete_user(self, user_id):
         if not await self.check_for_existing(user_id=user_id):
-            raise HTTPException(status_code=404, detail="User not found") 
+            raise HTTPException(status_code=404, detail="User not found")
         query = self.users.delete().where(self.users.c.id == user_id)
         await self.db.execute(query)
-
-
-    async def login_user(self, username):
-        query = "SELECT * FROM users WHERE username = :username"
-        user = await self.db.fetch_one(query, values={"username": username})
-        if not user:
-            raise HTTPException(status_code=400, detail="Incorrect username or password")
-        return user
-
-    async def decode_token(self, token):
-        query = "SELECT * FROM users WHERE username = :username"
-        user = await self.db.fetch_one(query, values={"username": token})
-        if not user:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return UserInDB(**user)
-
-    async def login_user(self, username):
-        query = "SELECT * FROM users WHERE username = :username"
-        user = await self.db.fetch_one(query, values={"username": username})
-        if not user:
-            raise HTTPException(status_code=400, detail="Incorrect username or password")
-        return user
-
-    async def decode_token(self, token):
-        query = "SELECT * FROM users WHERE username = :username"
-        user = await self.db.fetch_one(query, values={"username": token})
-        if not user:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return UserInDB(**user)
