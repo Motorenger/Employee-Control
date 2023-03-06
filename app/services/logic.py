@@ -30,7 +30,7 @@ class UserService:
         users = await self.db.fetch_all(query)
         return UserList(users=users)
 
-    async def retrieve_user(self, user_id: int = None, username: str = None, email: str = None, p: bool = False) -> User:
+    async def retrieve_user(self, user_id: int = None, username: str = None, email: str = None, password: bool = False) -> User:
         if user_id:
             query = self.users.select().where(self.users.c.id == user_id)
         elif username:
@@ -42,7 +42,7 @@ class UserService:
         user = await self.db.fetch_one(query)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
-        if username or p:
+        if username or password:
             return UserInDB(**user)
         return User(**user)
 

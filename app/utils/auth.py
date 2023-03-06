@@ -17,7 +17,7 @@ from services.logic import UserService
 async def authenticate_user(form_data: UserSingin, db: Database = Depends(get_db)) -> User:
     user_service = UserService(db=db)
 
-    user = await user_service.retrieve_user(email=form_data.email, p=True)
+    user = await user_service.retrieve_user(email=form_data.email, password=True)
     if not user:
         return False
     if not verify_password(new_pass=form_data.password, old_pass=user.password):
@@ -30,7 +30,7 @@ def create_access_token(data: dict) -> Token:
     expire = datetime.utcnow() + timedelta(minutes=30)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, envs["SECRET_KEY"], algorithm=envs["ALGORITHM_AUTH_2"])
-    return Token(token=encoded_jwt)
+    return Token(token=encoded_jwt, token_type="bearer")
 
 
 auth_scheme = HTTPBearer()
