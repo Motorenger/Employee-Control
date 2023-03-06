@@ -6,7 +6,7 @@ from databases import Database
 
 from db.models import users
 from utils.hashing import get_password_hash
-from schemas.user_schemas import UserCreate, User, UserUpdate, UserList
+from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 
 
 class UserService:
@@ -30,11 +30,20 @@ class UserService:
         users = await self.db.fetch_all(query)
         return UserList(users=users)
 
-    async def retrieve_user(self, user_id: int) -> User:
-        query = self.users.select().where(self.users.c.id == user_id)
+    async def retrieve_user(self, user_id: int = None, username: str = None, email: str = None, password: bool = False) -> User:
+        if user_id:
+            query = self.users.select().where(self.users.c.id == user_id)
+        elif username:
+            query = self.users.select().where(self.users.c.username == username)
+        elif email:
+            query = self.users.select().where(self.users.c.email == email)
+            user = await self.db.fetch_one(query)
+            return user
         user = await self.db.fetch_one(query)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
+        if username or password:
+            return UserInDB(**user)
         return User(**user)
 
     async def create_user(self, user: UserCreate) -> User:

@@ -4,11 +4,12 @@ import uvicorn
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer
 
 from utils.system_config import envs
 from db.database import get_db
 from core.log_config import init_loggers
-from routers import users
+from routers import users, auth
 
 
 init_loggers()
@@ -30,8 +31,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 app.include_router(users.router)
+app.include_router(auth.router)
 
 
 @app.on_event("startup")
