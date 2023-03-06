@@ -38,6 +38,7 @@ class UserService:
         elif email:
             query = self.users.select().where(self.users.c.email == email)
             user = await self.db.fetch_one(query)
+
             return user
         user = await self.db.fetch_one(query)
         if user is None:
@@ -61,10 +62,11 @@ class UserService:
         user = await self.db.fetch_one(query=query)
         return User(**user)
 
-    async def update_user(self, user_id: int, user_data: UserUpdate) -> User:
+    async def update_user(self, user_id: int, user_data: UserUpdate, current_user: User) -> User:
         if not await self.check_for_existing(user_id=user_id):
             raise HTTPException(status_code=404, detail="User not found")
-
+        if user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="It's not your account")
         query = self.users.update().where(self.users.c.id == user_id).values(username=user_data.username)
         await self.db.execute(query)
 
@@ -72,8 +74,11 @@ class UserService:
         user = await self.db.fetch_one(query)
         return User(**user)
 
-    async def delete_user(self, user_id):
+    async def delete_user(self, user_id: int, current_user: User):
         if not await self.check_for_existing(user_id=user_id):
             raise HTTPException(status_code=404, detail="User not found")
+        if user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="It's not your account")
+
         query = self.users.delete().where(self.users.c.id == user_id)
         await self.db.execute(query)
