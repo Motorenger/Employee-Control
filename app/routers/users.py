@@ -20,7 +20,7 @@ router = APIRouter(
 async def users_list(params: Params = Depends(), current_user: User = Depends(CurrentUser), db: Database = Depends(get_db)) -> Page:
     user_service = UserService(db=db)
 
-    users = await user_service.(get_users)
+    users = await user_service.get_users()
     return paginate(users.users, params)
 
 

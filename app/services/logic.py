@@ -10,7 +10,7 @@ from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInD
 
 
 class UserService:
-    def __init__(self, db: Database, current_user: Uset):
+    def __init__(self, db: Database, current_user: User | None = None):
         self.db = db
         self.current_user = await current_user.user()
         self.users = users
