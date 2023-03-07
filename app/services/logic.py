@@ -4,9 +4,11 @@ from fastapi import HTTPException
 
 from databases import Database
 
-from db.models import users
+from db.models import users, companies
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
+from schemas.company_schemas import Company, CompanyBase
+
 
 
 class UserService:
@@ -82,3 +84,28 @@ class UserService:
 
         query = self.users.delete().where(self.users.c.id == user_id)
         await self.db.execute(query)
+
+
+class CompanyService:
+    def __init__(self, db: Database):
+        self.db = db
+        self.companies = companies
+    
+    async def check_for_existing(self, comp_name: str):
+        query = self.companies.select().where(self.companies.c.name == comp_name)
+        company = await self.db.fetch_one(query=query)
+
+        return company
+
+    async def create_company(self, company: CompanyBase, user: User) -> Company:
+        if await self.check_for_existing(comp_name=company.name) is not None:
+            raise HTTPException(status_code=400, detail="Such company name already exists")
+        company_dict = company.dict()
+        company_dict["owner_id"] = user.id
+        company = Company(**company_dict)
+        query = self.companies.insert()
+        await self.db.execute(query=query, values=company_dict)
+
+        query = self.companies.select().where(self.companies.c.name == company.name)
+        company = await self.db.fetch_one(query=query)
+        return Company(**company)

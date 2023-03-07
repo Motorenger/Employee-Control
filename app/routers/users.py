@@ -26,7 +26,6 @@ async def users_list(params: Params = Depends(), current_user: User = Depends(Cu
 
 @router.post("/create", response_model=User)
 async def users_create(user: UserCreate, db: Database = Depends(get_db)) -> User:
-    await db.connect()
 
     user_service = UserService(db=db)
 

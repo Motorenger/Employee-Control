@@ -19,8 +19,9 @@ users = sqlalchemy.Table(
 companies = sqlalchemy.Table(
     "companies",
     metadata,
-    sqlalchemy.Column("owner_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("name", sqlalchemy.String(100)),
     sqlalchemy.Column("description", sqlalchemy.Text),
     sqlalchemy.Column("visible", sqlalchemy.Boolean),
+    sqlalchemy.Column("owner_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
 )
