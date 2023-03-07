@@ -10,8 +10,9 @@ from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInD
 
 
 class UserService:
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, current_user: User | None = None):
         self.db = db
+        self.current_user = await current_user.user()
         self.users = users
 
     async def check_for_existing(self, user_id: int = None, email: str = None) -> bool:
@@ -38,6 +39,7 @@ class UserService:
         elif email:
             query = self.users.select().where(self.users.c.email == email)
             user = await self.db.fetch_one(query)
+
             return user
         user = await self.db.fetch_one(query)
         if user is None:
@@ -64,7 +66,8 @@ class UserService:
     async def update_user(self, user_id: int, user_data: UserUpdate) -> User:
         if not await self.check_for_existing(user_id=user_id):
             raise HTTPException(status_code=404, detail="User not found")
-
+        if user_id != self.current_user.id:
+            raise HTTPException(status_code=403, detail="It's not your account")
         query = self.users.update().where(self.users.c.id == user_id).values(username=user_data.username)
         await self.db.execute(query)
 
@@ -75,5 +78,8 @@ class UserService:
     async def delete_user(self, user_id: int):
         if not await self.check_for_existing(user_id=user_id):
             raise HTTPException(status_code=404, detail="User not found")
+        if user_id != self.current_user.id:
+            raise HTTPException(status_code=403, detail="It's not your account")
+
         query = self.users.delete().where(self.users.c.id == user_id)
         await self.db.execute(query)

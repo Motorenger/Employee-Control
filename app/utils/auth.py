@@ -37,6 +37,7 @@ auth_scheme = HTTPBearer()
 
 
 class CurrentUser:
+
     def __init__(self, token: dict = Depends(auth_scheme), db: Database = Depends(get_db)):
         self.user_service = UserService(db=db)
         self.token = token.credentials
