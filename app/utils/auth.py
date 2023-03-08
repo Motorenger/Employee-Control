@@ -63,7 +63,6 @@ class CurrentUser:
 
     async def get_user_auth0(self) -> User:
             jwks_client = jwt.PyJWKClient(envs["JWKS_URL"])
-
             try:
                 signing_key = jwks_client.get_signing_key_from_jwt(
                     self.token
@@ -82,15 +81,20 @@ class CurrentUser:
                     issuer=envs["ISSUER"],
                 )
             except Exception as e:
-                return {"status": "error", "message": str(e)}
+                raise self.credentials_exception
             try:
                 user = await self.user_service.retrieve_user(email=payload["https://example.com/email"])
+                if user is None:
+                    raise Exception
+                user = User(**user)
             except:
                 user_data = {
                     "email": payload["https://example.com/email"],
                     "password": str(datetime.now())[:8]
                 }
                 user = await self.user_service.create_user(user=UserCreate(**user_data))
+
+
             return user
 
     async def user(self) -> User:
