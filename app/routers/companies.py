@@ -6,7 +6,7 @@ from fastapi_pagination import Page, Params, paginate
 
 from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
 from schemas.user_schemas import User
-from utils.auth import CurrentUser, get_user
+from utils.auth import get_user
 from services.logic import CompanyService
 from db.database import get_db
 
@@ -15,6 +15,7 @@ router = APIRouter(
     prefix="/companies",
     tags=["companies"]
 )
+
 
 @router.get("/", response_model=Page[Company])
 async def companies_list(params: Params = Depends(), current_user: User = Depends(get_user), db: Database = Depends(get_db)) -> Page:
@@ -25,7 +26,7 @@ async def companies_list(params: Params = Depends(), current_user: User = Depend
 
 
 @router.get("/{company_id}", response_model=Company)
-async def companies_list(company_id: int, 
+async def companies_retrieve(company_id: int,
                          current_user: User = Depends(get_user),
                          db: Database = Depends(get_db)
                         ) -> Company:

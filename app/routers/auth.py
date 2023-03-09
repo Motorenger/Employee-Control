@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer
 
-from utils.auth import authenticate_user, create_access_token, CurrentUser,  get_user
+from utils.auth import authenticate_user, create_access_token, get_user
 from schemas.user_schemas import User
 from schemas.token import Token
 

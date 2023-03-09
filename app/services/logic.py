@@ -10,7 +10,6 @@ from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInD
 from schemas.company_schemas import Company, CompanyBase, CompanyList
 
 
-
 class UserService:
     def __init__(self, db: Database, current_user: User | None = None):
         self.db = db

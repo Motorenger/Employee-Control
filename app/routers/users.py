@@ -7,7 +7,7 @@ from databases import Database
 from db.database import get_db
 from schemas.user_schemas import User, UserCreate, UserUpdate
 from services.logic import UserService
-from utils.auth import CurrentUser,  get_user
+from utils.auth import get_user
 
 
 router = APIRouter(

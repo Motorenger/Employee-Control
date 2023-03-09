@@ -1,5 +1,4 @@
 import sqlalchemy
-from sqlalchemy.orm import relationship
 
 
 metadata = sqlalchemy.MetaData()
