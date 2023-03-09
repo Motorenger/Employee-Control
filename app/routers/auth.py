@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer
 
-from utils.auth import authenticate_user, create_access_token, CurrentUser
+from utils.auth import authenticate_user, create_access_token, CurrentUser,  get_user
 from schemas.user_schemas import User
 from schemas.token import Token
 
@@ -26,5 +26,5 @@ async def login(user: User = Depends(authenticate_user)) -> Token:
 
 
 @router.get("/me", response_model=User)
-async def read_users_me(current_user: User = Depends(CurrentUser)) -> User:
-    return await current_user.user()
+async def read_users_me(current_user: User = Depends(get_user)) -> User:
+    return current_user
