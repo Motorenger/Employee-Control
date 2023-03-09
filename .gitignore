@@ -135,3 +135,5 @@ Pipfile.lock
 .env.db.test
 
 .config
+
+.vscode/

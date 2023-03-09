@@ -54,3 +54,27 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
 
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(scope='session')
+async def login_user(ac: AsyncClient, users_tokens: dict):
+    async def __send_request(user_email: str, user_password: str):
+        payload = {
+            "email": user_email,
+            "password": user_password,
+        }
+        response = await ac.post("/auth/login", json=payload)
+        if response.status_code != 200:
+            return response
+        user_token = response.json().get('token')
+        users_tokens[user_email] = user_token
+        return response
+
+    return __send_request
+
+
+@pytest.fixture(scope='session')
+def users_tokens():
+    tokens_store = dict()
+    return tokens_store
+

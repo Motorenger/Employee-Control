@@ -38,7 +38,7 @@ auth_scheme = HTTPBearer()
 
 class CurrentUser:
 
-    def __init__(self, token: dict = Depends(auth_scheme), db: Database = Depends(get_db)):
+    def __init__(self, token: dict, db: Database):
         self.user_service = UserService(db=db)
         self.token = token.credentials
         self.credentials_exception = HTTPException(
@@ -63,7 +63,6 @@ class CurrentUser:
 
     async def get_user_auth0(self) -> User:
             jwks_client = jwt.PyJWKClient(envs["JWKS_URL"])
-
             try:
                 signing_key = jwks_client.get_signing_key_from_jwt(
                     self.token
@@ -82,15 +81,19 @@ class CurrentUser:
                     issuer=envs["ISSUER"],
                 )
             except Exception as e:
-                return {"status": "error", "message": str(e)}
+                raise self.credentials_exception
             try:
-                user = await self.user_service.retrieve_user(email=payload["https://example.com/email"])
+                user = await self.user_service.retrieve_user(email=payload["email"])
+                if user is None:
+                    raise Exception
+                user = User(**user)
             except:
                 user_data = {
-                    "email": payload["https://example.com/email"],
+                    "email": payload["email"],
                     "password": str(datetime.now())[:8]
                 }
                 user = await self.user_service.create_user(user=UserCreate(**user_data))
+
             return user
 
     async def user(self) -> User:
@@ -101,3 +104,9 @@ class CurrentUser:
             user = await self.get_user_auth0()
             return user
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+
+async def get_user(token: dict = Depends(auth_scheme), db: Database = Depends(get_db)):
+    current_user = CurrentUser(token=token, db=db)
+    user = await current_user.user()
+    return user

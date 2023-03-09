@@ -3,7 +3,7 @@ from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_health_check(ac: AsyncClient):
+async def test_health_check(ac: AsyncClient, prepare_database):
     data = {
         "status_code": 200,
         "detail": "ok",
