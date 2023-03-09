@@ -15,7 +15,8 @@ class UserService:
     def __init__(self, db: Database, current_user: User | None = None):
         self.db = db
         self.users = users
-        self.current_user = current_user
+        if current_user is not None:
+            self.current_user = current_user.user()
 
     async def check_for_existing(self, user_id: int = None, email: str = None) -> bool:
         if user_id:
@@ -96,7 +97,8 @@ class CompanyService:
     def __init__(self, db: Database, current_user: User | None = None):
         self.db = db
         self.companies = companies
-        self.current_user = current_user
+        if current_user is not None:
+            self.current_user = current_user.user()
 
     async def check_for_existing(self, comp_name: str | None = None,
                                  company_id: int | None = None,

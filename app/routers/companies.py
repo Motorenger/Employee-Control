@@ -18,7 +18,7 @@ router = APIRouter(
 
 @router.get("/", response_model=Page[Company])
 async def companies_list(params: Params = Depends(), current_user: User = Depends(CurrentUser), db: Database = Depends(get_db)) -> Page:
-    company_service = CompanyService(db=db, current_user= await current_user.user())
+    company_service = CompanyService(db=db, current_user=current_user)
 
     companies = await company_service.get_companies()
     return paginate(companies.companies, params)
@@ -29,7 +29,7 @@ async def companies_list(company_id: int,
                          current_user: User = Depends(CurrentUser),
                          db: Database = Depends(get_db)
                         ) -> Company:
-    company_service = CompanyService(db=db, current_user= await current_user.user())
+    company_service = CompanyService(db=db, current_user=current_user)
 
     company = await company_service.retrieve_company(company_id=company_id)
     return company
@@ -40,7 +40,7 @@ async def companies_create(company: CompanyBase,
                          current_user: User = Depends(CurrentUser),
                          db: Database = Depends(get_db)
                         ) -> Company:
-    company_service = CompanyService(db=db, current_user= await current_user.user())
+    company_service = CompanyService(db=db, current_user=current_user)
 
     company = await company_service.create_company(company=company)
     return company
@@ -52,7 +52,7 @@ async def company_update(company_id: int,
                          current_user: User = Depends(CurrentUser),
                          db: Database = Depends(get_db)
                         ) -> Company:
-    company_service = CompanyService(db=db, current_user= await current_user.user())
+    company_service = CompanyService(db=db, current_user=current_user)
 
     company = await company_service.update_company(company_id=company_id,
                                                    company_data=company_data
@@ -62,6 +62,6 @@ async def company_update(company_id: int,
 
 @router.delete("/{company_id}", status_code=204)
 async def company_delete(company_id: int, current_user: User = Depends(CurrentUser), db: Database = Depends(get_db)):
-    company_service = CompanyService(db=db, current_user= await current_user.user())
+    company_service = CompanyService(db=db, current_user=current_user)
 
     await company_service.delete_company(company_id=company_id)
