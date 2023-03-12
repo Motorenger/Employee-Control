@@ -6,7 +6,7 @@ from databases import Database
 
 from db.database import get_db
 from schemas.user_schemas import User, UserCreate, UserUpdate
-from services.logic import UserService
+from services.user_logic import UserService, UserActionsService
 from utils.auth import get_user
 
 
@@ -53,3 +53,14 @@ async def users_delete(user_id: int, current_user: User = Depends(get_user), db:
     user_service = UserService(db=db, current_user=current_user)
 
     await user_service.delete_user(user_id=user_id)
+
+
+# Actions
+
+@router.get("/me/invites")
+async def invites_list(current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    invites = await user_service.get_invites()
+    return invites

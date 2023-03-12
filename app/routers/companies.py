@@ -5,9 +5,10 @@ from databases import Database
 from fastapi_pagination import Page, Params, paginate
 
 from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
+from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.user_schemas import User
 from utils.auth import get_user
-from services.logic import CompanyService
+from services.company_logic import CompanyService, CompanyActionsService
 from db.database import get_db
 
 
@@ -66,3 +67,46 @@ async def company_delete(company_id: int, current_user: User = Depends(get_user)
     company_service = CompanyService(db=db, current_user=current_user)
 
     await company_service.delete_company(company_id=company_id)
+
+
+# Actions
+
+
+@router.get("/{company_id}/invites", response_model=Page[Invite])
+async def list_invites(company_id: int,
+                       params: Params = Depends(), 
+                       current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)
+                 ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+    invites = await company_actions_service.get_invites()
+    return paginate(invites.invites, params)
+
+@router.post("/{company_id}/invite")
+async def invite(company_id: int,
+                 invite_data: InviteData,
+                 current_user: User = Depends(get_user),
+                 db: Database = Depends(get_db)
+                 ):
+        company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+        await company_actions_service.send_invite(invite_data=invite_data)
+        
+
+@router.get("/{company_id}/users_invites")
+async def list_invites(company_id: int,
+                       params: Params = Depends(), 
+                       current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)
+                 ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+    users = await company_actions_service.get_users()
+    return users
