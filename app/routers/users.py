@@ -64,3 +64,23 @@ async def invites_list(current_user: User = Depends(get_user),
 
     invites = await user_service.get_invites()
     return invites
+
+
+@router.post("/me/invites/accept/{invite_id}", status_code=201)
+async def invite_accept(invite_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                        ):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    await user_service.accept_invite(invite_id=invite_id)
+
+
+@router.delete("/me/invites/decline/{invite_id}", status_code=204)
+async def invite_accept(invite_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                        ):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    await user_service.decline_invite(invite_id=invite_id)

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from databases import Database
 
 
-from db.models import users, invites
+from db.models import users, invites, company_members
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 from schemas.invite_schemas import InvitesList
@@ -92,13 +92,31 @@ class UserService:
         await self.db.execute(query)
 
 
-
 class UserActionsService(UserService):
     def __init__(self, current_user: User, db: Database):
         super().__init__(db=db, current_user=current_user)
         self.invites = invites
+        self.company_members = company_members
+
     async def get_invites(self) -> InvitesList:
         query = self.invites.select().where(self.current_user.id == self.invites.c.user_id)
         invites = await self.db.fetch_all(query=query)
 
         return InvitesList(invites=invites)
+
+    async def accept_invite(self, invite_id: int, response_code=201):
+        query = self.invites.select().where(self.invites.c.id == invite_id)
+        invite = await self.db.fetch_one(query=query)
+
+        query = self.company_members.insert()
+        values = {"user_id": invite.user_id, "company_id": invite.company_id}
+
+        await self.db.execute(query=query, values=values)
+
+        query = self.invites.delete().where(self.invites.c.id == invite_id)
+        await self.db.execute(query)
+
+    async def decline_invite(self, invite_id: int):
+
+        query = self.invites.delete().where(self.invites.c.id == invite_id)
+        await self.db.execute(query)

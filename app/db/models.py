@@ -34,7 +34,7 @@ company_members = sqlalchemy.Table(
     "company_members",
     metadata,
     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
-    sqlalchemy.Column("compnay_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False)
+    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False)
 
 )
 

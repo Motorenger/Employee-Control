@@ -6,7 +6,7 @@ from fastapi_pagination import Page, Params, paginate
 
 from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
 from schemas.invite_schemas import InviteData, InviteCreate, Invite
-from schemas.user_schemas import User
+from schemas.user_schemas import User, UserList
 from utils.auth import get_user
 from services.company_logic import CompanyService, CompanyActionsService
 from db.database import get_db
@@ -71,6 +71,19 @@ async def company_delete(company_id: int, current_user: User = Depends(get_user)
 
 # Actions
 
+@router.get("/{company_id}/members", response_model=UserList)
+async def company_members(company_id: int,
+                          params: Params = Depends(), 
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> UserList:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    members = await company_actions_service.get_members()
+    return members
+
 
 @router.get("/{company_id}/invites", response_model=Page[Invite])
 async def list_invites(company_id: int,
@@ -96,17 +109,18 @@ async def invite(company_id: int,
                                                       db=db
                                                       )
         await company_actions_service.send_invite(invite_data=invite_data)
-        
 
-@router.get("/{company_id}/users_invites")
-async def list_invites(company_id: int,
-                       params: Params = Depends(), 
-                       current_user: User = Depends(get_user),
-                       db: Database = Depends(get_db)
-                 ):
+
+@router.delete("/{company_id}/invite/{invite_id}", status_code=204)
+async def invite_delete(invite_id: int,
+                        company_id: int,
+                        invite_data: InviteData,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
     company_actions_service = CompanyActionsService(company_id=company_id,
-                                                      current_user=current_user,
-                                                      db=db
-                                                      )
-    users = await company_actions_service.get_users()
-    return users
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+
+    await company_actions_service.delete_invite(invite_id=invite_id)

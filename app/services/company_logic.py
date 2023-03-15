@@ -2,10 +2,10 @@ from fastapi import HTTPException
 
 from databases import Database
 
-from db.models import companies, invites, users
+from db.models import companies, invites, users, company_members
 from schemas.company_schemas import Company, CompanyBase, CompanyList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
-from schemas.user_schemas import User
+from schemas.user_schemas import User, UserList
 from services.user_logic import UserService
 
 
@@ -81,6 +81,7 @@ class CompanyActionsService(CompanyService):
         self.company_id = company_id
         self.invites = invites
         self.user_service= UserService(db=db, current_user=current_user)
+        self.company_members = company_members
 
     async def get_invites(self) -> InvitesList:
         await self.check_for_existing(company_id=self.company_id)
@@ -89,20 +90,28 @@ class CompanyActionsService(CompanyService):
         invites = await self.db.fetch_all(query=query)
         return InvitesList(invites=invites)
 
-    async def get_users(self):
+    async def get_members(self) -> UserList:
         await self.check_for_existing(company_id=self.company_id)
 
-        query = users.select().join(self.invites).where(self.invites.c.company_id == self.company_id).where(users.c.id == self.invites.c.user_id)
-        result = await self.db.fetch_all(query=query)
-        return result
+        query = users.select().join(self.company_members).where(self.company_members.c.company_id == self.company_id).where(users.c.id == self.company_members.c.user_id)
+        members = await self.db.fetch_all(query=query)
+        return UserList(users=members)
 
     async def send_invite(self, invite_data: InviteData):
         await self.check_for_existing(company_id=self.company_id, check_owner=True)
         if not await self.user_service.check_for_existing(user_id=invite_data.user_id):
             raise HTTPException(status_code=404, detail="Not Found")
+        if invite_data.user_id == self.current_user.id:
+            raise HTTPException(status_code=404, detail="You can't invite yourself")
         invite_data = invite_data.dict()
         invite_data["company_id"] = self.company_id
         invite = InviteCreate(**invite_data)
 
         query = self.invites.insert()
         await self.db.execute(query=query, values=invite.dict())
+
+    async def delete_invite(self, invite_id: int):
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
+        
+        query = self.invites.delete().where(self.invites.c.id == invite_id)
+        await self.db.execute(query)
