@@ -5,9 +5,10 @@ from fastapi import HTTPException
 from databases import Database
 
 
-from db.models import users, invites, company_members
+from db.models import users, invites, company_members, requests
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
+from schemas.request_schemas import RequestList
 from schemas.invite_schemas import InvitesList
 
 
@@ -96,6 +97,7 @@ class UserActionsService(UserService):
     def __init__(self, current_user: User, db: Database):
         super().__init__(db=db, current_user=current_user)
         self.invites = invites
+        self.requests = requests
         self.company_members = company_members
 
     async def get_invites(self) -> InvitesList:
@@ -120,3 +122,18 @@ class UserActionsService(UserService):
 
         query = self.invites.delete().where(self.invites.c.id == invite_id)
         await self.db.execute(query)
+
+    async def get_requests(self) -> RequestList:
+        query = self.requests.select().where(self.requests.c.user_id == self.current_user.id)
+        requests = await self.db.fetch_all(query=query)
+
+        return RequestList(requests=requests)
+
+    async def decline_request(self, request_id: int):
+
+        query = self.requests.delete().where(self.requests.c.id == request_id)
+        await self.db.execute(query)
+
+    async def leave_company(self, company_id: int):
+        query = self.company_members.delete().where(self.company_members.c.user_id == self.current_user.id)
+        await self.db.execute(query=query)

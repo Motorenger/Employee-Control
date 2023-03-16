@@ -77,10 +77,39 @@ async def invite_accept(invite_id: int,
 
 
 @router.delete("/me/invites/decline/{invite_id}", status_code=204)
-async def invite_accept(invite_id: int,
+async def invite_decline(invite_id: int,
                         current_user: User = Depends(get_user),
                         db: Database = Depends(get_db)
                         ):
     user_service = UserActionsService(db=db, current_user=current_user)
 
     await user_service.decline_invite(invite_id=invite_id)
+
+
+@router.get("/me/requests")
+async def requests_list(current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    requests = await user_service.get_requests()
+    return requests
+
+
+@router.delete("/me/requests/decline/{request_id}", status_code=204)
+async def request_decline(request_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                        ):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    await user_service.decline_request(request_id=request_id)
+
+
+@router.delete("/me/{company_id}/leave", status_code=204)
+async def leave_company(company_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                        ):
+    user_service = UserActionsService(db=db, current_user=current_user)
+
+    await user_service.leave_company(company_id=company_id)
