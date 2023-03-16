@@ -5,9 +5,12 @@ from databases import Database
 from fastapi_pagination import Page, Params, paginate
 
 from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
-from schemas.user_schemas import User
+from schemas.invite_schemas import InviteData, InviteCreate, Invite
+from schemas.request_schemas import RequestData, RequestCreate, RequestList
+from schemas.user_schemas import User, UserList
 from utils.auth import get_user
-from services.logic import CompanyService
+from services.company_logic import CompanyService
+from services.company_actions_logic import CompanyActionsService
 from db.database import get_db
 
 
@@ -66,3 +69,126 @@ async def company_delete(company_id: int, current_user: User = Depends(get_user)
     company_service = CompanyService(db=db, current_user=current_user)
 
     await company_service.delete_company(company_id=company_id)
+
+
+# Actions
+
+@router.get("/{company_id}/members", response_model=UserList)
+async def company_members(company_id: int,
+                          params: Params = Depends(), 
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> UserList:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    members = await company_actions_service.get_members()
+    return members
+
+
+@router.get("/{company_id}/invites", response_model=Page[Invite])
+async def list_invites(company_id: int,
+                       params: Params = Depends(), 
+                       current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)
+                 ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+    invites = await company_actions_service.get_invites()
+    return paginate(invites.invites, params)
+
+@router.post("/{company_id}/invite", status_code=201)
+async def invite(company_id: int,
+                 invite_data: InviteData,
+                 current_user: User = Depends(get_user),
+                 db: Database = Depends(get_db)
+                 ):
+        company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+        await company_actions_service.send_invite(invite_data=invite_data)
+
+
+@router.delete("/{company_id}/invite/{invite_id}", status_code=204)
+async def invite_delete(invite_id: int,
+                        company_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+
+    await company_actions_service.delete_invite(invite_id=invite_id)
+
+
+@router.post("/request", status_code=201)
+async def request(
+                 request_data: RequestData,
+                 current_user: User = Depends(get_user),
+                 db: Database = Depends(get_db)
+                 ):
+        company_actions_service = CompanyActionsService(
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+        await company_actions_service.send_request(request_data=request_data)
+
+
+@router.get("/{company_id}/requests", response_model=Page[Invite])
+async def list_requests(company_id: int,
+                       params: Params = Depends(), 
+                       current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)
+                 ) -> Page:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+    requests = await company_actions_service.get_requests()
+    return paginate(requests.requests, params)
+
+
+@router.post("/{company_id}/requests/accept/{request_id}", status_code=201)
+async def invite_accept(company_id: int,
+                        request_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                        ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                      current_user=current_user,
+                                                      db=db
+                                                      )
+    await company_actions_service.accept_request(request_id=request_id)
+
+
+@router.delete("/{company_id}/requests/{request_id}", status_code=204)
+async def request_delete(request_id: int,
+                        company_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+
+    await company_actions_service.decline_request(request_id=request_id)
+
+
+@router.delete("/{company_id}/members/{user_id}", status_code=204)
+async def delete_member(company_id: int,
+                        user_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    await company_actions_service.delete_member(user_id=user_id)

@@ -4,10 +4,12 @@ from fastapi import HTTPException
 
 from databases import Database
 
-from db.models import users, companies
+
+from db.models import users, invites, company_members, requests
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
-from schemas.company_schemas import Company, CompanyBase, CompanyList
+from schemas.request_schemas import RequestList
+from schemas.invite_schemas import InvitesList
 
 
 class UserService:
@@ -91,67 +93,47 @@ class UserService:
         await self.db.execute(query)
 
 
-class CompanyService:
-    def __init__(self, db: Database, current_user: User | None = None):
-        self.db = db
-        self.companies = companies
-        self.current_user = current_user
+class UserActionsService(UserService):
+    def __init__(self, current_user: User, db: Database):
+        super().__init__(db=db, current_user=current_user)
+        self.invites = invites
+        self.requests = requests
+        self.company_members = company_members
 
-    async def check_for_existing(self, comp_name: str | None = None,
-                                 company_id: int | None = None,
-                                 check_owner: bool = False,
-                                 exeptions: bool = True
-                                 ):
-        if comp_name:
-            query = self.companies.select().where(self.companies.c.name == comp_name)
-        elif company_id:
-            query = self.companies.select().where(self.companies.c.id == company_id)
-        company = await self.db.fetch_one(query=query)
-        if not exeptions:
-            return company
-        if company is None:
-            raise HTTPException(status_code=404, detail="Not Found")
-        if check_owner:
-            if company.owner_id != self.current_user.id:
-                raise HTTPException(status_code=403, detail="It is not your company")
+    async def get_invites(self) -> InvitesList:
+        query = self.invites.select().where(self.current_user.id == self.invites.c.user_id)
+        invites = await self.db.fetch_all(query=query)
 
-        return company
+        return InvitesList(invites=invites)
 
-    async def get_companies(self) -> CompanyList:
-        query = self.companies.select().where((self.companies.c.visible == True) | (self.companies.c.owner_id == self.current_user.id))
-        companies = await self.db.fetch_all(query)
-        return CompanyList(companies=companies)
+    async def accept_invite(self, invite_id: int):
+        query = self.invites.select().where(self.invites.c.id == invite_id)
+        invite = await self.db.fetch_one(query=query)
 
-    async def retrieve_company(self, company_id):
-        company = await self.check_for_existing(company_id=company_id, check_owner=True)
+        query = self.company_members.insert()
+        values = {"user_id": invite.user_id, "company_id": invite.company_id}
 
-        return Company(**company)
+        await self.db.execute(query=query, values=values)
 
-    async def create_company(self, company: CompanyBase) -> Company:
-        if await self.check_for_existing(comp_name=company.name, exeptions=False) is not None:
-            raise HTTPException(status_code=400, detail="Such company name already exists")
-        company_dict = company.dict()
-        company_dict["owner_id"] = self.current_user.id
-        query = self.companies.insert()
-        await self.db.execute(query=query, values=company_dict)
-
-        query = self.companies.select().where(self.companies.c.name == company.name)
-        company = await self.db.fetch_one(query=query)
-        return Company(**company)
-
-    async def update_company(self, company_id: int, company_data: str) -> Company:
-        company = Company(**await self.check_for_existing(company_id=company_id, check_owner=True))
-        update_data = {field:value for field, value in company_data.dict().items() if value is not None}
-        
-        query = self.companies.update().where(self.companies.c.id == company_id).values(**update_data)
+        query = self.invites.delete().where(self.invites.c.id == invite_id)
         await self.db.execute(query)
 
-        query = self.companies.select().where(self.companies.c.id == company_id)
-        company = await self.db.fetch_one(query)
-        return Company(**company)
+    async def decline_invite(self, invite_id: int):
 
-    async def delete_company(self, company_id: int):
-        company = await self.check_for_existing(company_id=company_id)
-
-        query = self.companies.delete().where(self.companies.c.id == company_id)
+        query = self.invites.delete().where(self.invites.c.id == invite_id)
         await self.db.execute(query)
+
+    async def get_requests(self) -> RequestList:
+        query = self.requests.select().where(self.requests.c.user_id == self.current_user.id)
+        requests = await self.db.fetch_all(query=query)
+
+        return RequestList(requests=requests)
+
+    async def decline_request(self, request_id: int):
+
+        query = self.requests.delete().where(self.requests.c.id == request_id)
+        await self.db.execute(query)
+
+    async def leave_company(self, company_id: int):
+        query = self.company_members.delete().where(self.company_members.c.user_id == self.current_user.id)
+        await self.db.execute(query=query)

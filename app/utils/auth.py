@@ -11,7 +11,7 @@ from utils.system_config import envs
 from utils.hashing import verify_password
 from schemas.user_schemas import User, UserCreate, UserSingin
 from schemas.token import Token
-from services.logic import UserService
+from services.user_logic import UserService
 
 
 async def authenticate_user(form_data: UserSingin, db: Database = Depends(get_db)) -> User:
