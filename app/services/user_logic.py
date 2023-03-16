@@ -111,7 +111,7 @@ class UserActionsService(UserService):
         invite = await self.db.fetch_one(query=query)
 
         query = self.company_members.insert()
-        values = {"user_id": invite.user_id, "company_id": invite.company_id}
+        values = {"user_id": invite.user_id, "company_id": invite.company_id, "admin": False}
 
         await self.db.execute(query=query, values=values)
 

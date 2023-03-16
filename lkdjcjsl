@@ -1,0 +1,184 @@
+[1mdiff --git a/app/db/models.py b/app/db/models.py[m
+[1mindex 0b0a0e7..390e8d7 100644[m
+[1m--- a/app/db/models.py[m
+[1m+++ b/app/db/models.py[m
+[36m@@ -34,7 +34,8 @@[m [mcompany_members = sqlalchemy.Table([m
+     "company_members",[m
+     metadata,[m
+     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),[m
+[31m-    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False)[m
+[32m+[m[32m    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),[m
+[32m+[m[32m    sqlalchemy.Column("admin", sqlalchemy.Boolean)[m
+ [m
+ )[m
+ [m
+[1mdiff --git a/app/routers/companies.py b/app/routers/companies.py[m
+[1mindex f0857d8..af62590 100644[m
+[1m--- a/app/routers/companies.py[m
+[1m+++ b/app/routers/companies.py[m
+[36m@@ -161,9 +161,9 @@[m [masync def invite_accept(company_id: int,[m
+                         db: Database = Depends(get_db)[m
+                         ):[m
+     company_actions_service = CompanyActionsService(company_id=company_id,[m
+[31m-                                                      current_user=current_user,[m
+[31m-                                                      db=db[m
+[31m-                                                      )[m
+[32m+[m[32m                                                    current_user=current_user,[m
+[32m+[m[32m                                                    db=db[m
+[32m+[m[32m                                                    )[m
+     await company_actions_service.accept_request(request_id=request_id)[m
+ [m
+ [m
+[36m@@ -192,3 +192,43 @@[m [masync def delete_member(company_id: int,[m
+                                                     db=db[m
+                                                     )[m
+     await company_actions_service.delete_member(user_id=user_id)[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@router.post("/{company_id}/members/admin/{user_id}", status_code=200)[m
+[32m+[m[32masync def admin(company_id: int,[m
+[32m+[m[32m                        user_id: int,[m
+[32m+[m[32m                        current_user: User = Depends(get_user),[m
+[32m+[m[32m                        db: Database = Depends(get_db)[m
+[32m+[m[32m                    ):[m
+[32m+[m[32m    company_actions_service = CompanyActionsService(company_id=company_id,[m
+[32m+[m[32m                                                    current_user=current_user,[m
+[32m+[m[32m                                                    db=db[m
+[32m+[m[32m                                                    )[m
+[32m+[m[32m    await company_actions_service.admin(user_id=user_id)[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@router.delete("/{company_id}/members/admin/{user_id}", status_code=200)[m
+[32m+[m[32masync def remove_admin(company_id: int,[m
+[32m+[m[32m                        user_id: int,[m
+[32m+[m[32m                        current_user: User = Depends(get_user),[m
+[32m+[m[32m                        db: Database = Depends(get_db)[m
+[32m+[m[32m                    ):[m
+[32m+[m[32m    company_actions_service = CompanyActionsService(company_id=company_id,[m
+[32m+[m[32m                                                    current_user=current_user,[m
+[32m+[m[32m                                                    db=db[m
+[32m+[m[32m                                                    )[m
+[32m+[m[32m    await company_actions_service.remove_admins(user_id=user_id)[m
+[32m+[m
+[32m+[m
+[32m+[m[32m@router.get("/{company_id}/members/admins", response_model=UserList)[m
+[32m+[m[32masync def company_admins(company_id: int,[m
+[32m+[m[32m                          params: Params = Depends(),[m[41m [m
+[32m+[m[32m                          current_user: User = Depends(get_user),[m
+[32m+[m[32m                          db: Database = Depends(get_db)[m
+[32m+[m[32m                        ) -> UserList:[m
+[32m+[m[32m    company_actions_service = CompanyActionsService(company_id=company_id,[m
+[32m+[m[32m                                                    current_user=current_user,[m
+[32m+[m[32m                                                    db=db[m
+[32m+[m[32m                                                    )[m
+[32m+[m[32m    admins = await company_actions_service.get_admins()[m
+[32m+[m[32m    return admins[m
+\ No newline at end of file[m
+[1mdiff --git a/app/services/company_actions_logic.py b/app/services/company_actions_logic.py[m
+[1mindex 9879c9f..12c537d 100644[m
+[1m--- a/app/services/company_actions_logic.py[m
+[1m+++ b/app/services/company_actions_logic.py[m
+[36m@@ -2,6 +2,7 @@[m [mfrom fastapi import HTTPException[m
+ [m
+ from databases import Database[m
+ [m
+[32m+[m[32mfrom services.company_logic import CompanyService[m
+ from db.models import companies, invites, requests, users, company_members[m
+ from schemas.company_schemas import Company, CompanyBase, CompanyList[m
+ from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList[m
+[36m@@ -78,7 +79,7 @@[m [mclass CompanyActionsService(CompanyService):[m
+         request = await self.db.fetch_one(query=query)[m
+ [m
+         query = self.company_members.insert()[m
+[31m-        values = {"user_id": request.user_id, "company_id": request.company_id}[m
+[32m+[m[32m        values = {"user_id": request.user_id, "company_id": request.company_id, "admin": False}[m
+ [m
+         await self.db.execute(query=query, values=values)[m
+ [m
+[36m@@ -96,3 +97,22 @@[m [mclass CompanyActionsService(CompanyService):[m
+ [m
+         query = self.company_members.delete().where(self.company_members.c.user_id == user_id)[m
+         await self.db.execute(query=query)[m
+[32m+[m
+[32m+[m[32m    async def admin(self, user_id: int):[m
+[32m+[m[32m        await self.check_for_existing(company_id=self.company_id, check_owner=True)[m
+[32m+[m
+[32m+[m[32m        query = self.company_members.update().where(self.company_members.c.user_id == user_id).values({"admin": True})[m
+[32m+[m[32m        await self.db.execute(query)[m
+[32m+[m
+[32m+[m[32m    async def get_admins(self) -> UserList:[m
+[32m+[m[32m        await self.check_for_existing(company_id=self.company_id, check_owner=True)[m
+[32m+[m
+[32m+[m[32m        query = users.select().join(self.company_members).where(self.company_members.c.company_id == self.company_id).where(self.company_members.c.admin == True).where(users.c.id == self.company_members.c.user_id)[m
+[32m+[m[32m        admins = await self.db.fetch_all(query=query)[m
+[32m+[m[32m        return UserList(users=admins)[m
+[32m+[m
+[32m+[m[32m    async def remove_admins(self, user_id: int):[m
+[32m+[m[32m        await self.check_for_existing(company_id=self.company_id, check_owner=True)[m
+[32m+[m
+[32m+[m[32m        query = self.company_members.update().where(self.company_members.c.user_id == user_id).values({"admin": False})[m
+[32m+[m[32m        await self.db.execute(query)[m
+[1mdiff --git a/app/services/user_logic.py b/app/services/user_logic.py[m
+[1mindex df774e6..1992201 100644[m
+[1m--- a/app/services/user_logic.py[m
+[1m+++ b/app/services/user_logic.py[m
+[36m@@ -111,7 +111,7 @@[m [mclass UserActionsService(UserService):[m
+         invite = await self.db.fetch_one(query=query)[m
+ [m
+         query = self.company_members.insert()[m
+[31m-        values = {"user_id": invite.user_id, "company_id": invite.company_id}[m
+[32m+[m[32m        values = {"user_id": invite.user_id, "company_id": invite.company_id, "admin": False}[m
+ [m
+         await self.db.execute(query=query, values=values)[m
+ [m
+[1mdiff --git a/tests/test_4_requests.py b/tests/test_4_requests.py[m
+[1mindex 87a6234..11efc69 100644[m
+[1m--- a/tests/test_4_requests.py[m
+[1m+++ b/tests/test_4_requests.py[m
+[36m@@ -332,3 +332,45 @@[m [masync def test_members_after_leave(ac: AsyncClient, users_tokens):[m
+     response = await ac.get("/company/2/members", headers=headers)[m
+     assert response.status_code == 200[m
+     assert len(response.json().get('result').get('users')) == 2[m
+[32m+[m
+[32m+[m
+[32m+[m[32masync def test_send_request_three_again_success(ac: AsyncClient, users_tokens):[m
+[32m+[m[32m    headers = {[m
+[32m+[m[32m        "Authorization": f"Bearer {users_tokens['test3@test.com']}",[m
+[32m+[m[32m    }[m
+[32m+[m[32m    payload = {[m
+[32m+[m[32m        "to_company_id": 2,[m
+[32m+[m[32m        "invite_message": "string"[m
+[32m+[m[32m    }[m
+[32m+[m[32m    response = await ac.post("/request/", json=payload, headers=headers)[m
+[32m+[m[32m    assert response.status_code == 200[m
+[32m+[m[32m    assert response.json().get('detail') == "success"[m
+[32m+[m
+[32m+[m
+[32m+[m[32masync def test_accept_request_three(ac: AsyncClient, users_tokens):[m
+[32m+[m[32m    headers = {[m
+[32m+[m[32m        "Authorization": f"Bearer {users_tokens['test2@test.com']}",[m
+[32m+[m[32m    }[m
+[32m+[m[32m    response = await ac.get("/request/4/accept/", headers=headers)[m
+[32m+[m[32m    assert response.status_code == 200[m
+[32m+[m
+[32m+[m
+[32m+[m[32masync def test_send_request_four_again_success(ac: AsyncClient, users_tokens):[m
+[32m+[m[32m    headers = {[m
+[32m+[m[32m        "Authorization": f"Bearer {users_tokens['test4@test.com']}",[m
+[32m+[m[32m    }[m
+[32m+[m[32m    payload = {[m
+[32m+[m[32m        "to_company_id": 2,[m
+[32m+[m[32m        "invite_message": "string"[m
+[32m+[m[32m    }[m
+[32m+[m[32m    response = await ac.post("/request/", json=payload, headers=headers)[m
+[32m+[m[32m    assert response.status_code == 200[m
+[32m+[m[32m    assert response.json().get('detail') == "success"[m
+[32m+[m
+[32m+[m
+[32m+[m[32masync def test_accept_request_four(ac: AsyncClient, users_tokens):[m
+[32m+[m[32m    headers = {[m
+[32m+[m[32m        "Authorization": f"Bearer {users_tokens['test2@test.com']}",[m
+[32m+[m[32m    }[m
+[32m+[m[32m    response = await ac.get("/request/5/accept/", headers=headers)[m
+[32m+[m[32m    assert response.status_code == 200[m
+\ No newline at end of file[m
