@@ -9,7 +9,8 @@ from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
 from schemas.user_schemas import User, UserList
 from utils.auth import get_user
-from services.company_logic import CompanyService, CompanyActionsService
+from services.company_logic import CompanyService
+from services.company_actions_logic import CompanyActionsService
 from db.database import get_db
 
 

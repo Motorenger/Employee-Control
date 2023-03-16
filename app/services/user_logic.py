@@ -106,7 +106,7 @@ class UserActionsService(UserService):
 
         return InvitesList(invites=invites)
 
-    async def accept_invite(self, invite_id: int, response_code=201):
+    async def accept_invite(self, invite_id: int):
         query = self.invites.select().where(self.invites.c.id == invite_id)
         invite = await self.db.fetch_one(query=query)
 

@@ -6,6 +6,8 @@ from databases import Database
 
 from db.database import get_db
 from schemas.user_schemas import User, UserCreate, UserUpdate
+from schemas.invite_schemas import InvitesList
+from schemas.request_schemas import RequestList
 from services.user_logic import UserService, UserActionsService
 from utils.auth import get_user
 
@@ -57,9 +59,9 @@ async def users_delete(user_id: int, current_user: User = Depends(get_user), db:
 
 # Actions
 
-@router.get("/me/invites")
+@router.get("/me/invites", response_model=InvitesList)
 async def invites_list(current_user: User = Depends(get_user),
-                       db: Database = Depends(get_db)):
+                       db: Database = Depends(get_db)) -> InvitesList:
     user_service = UserActionsService(db=db, current_user=current_user)
 
     invites = await user_service.get_invites()
@@ -86,9 +88,9 @@ async def invite_decline(invite_id: int,
     await user_service.decline_invite(invite_id=invite_id)
 
 
-@router.get("/me/requests")
+@router.get("/me/requests", response_model=RequestList)
 async def requests_list(current_user: User = Depends(get_user),
-                       db: Database = Depends(get_db)):
+                       db: Database = Depends(get_db)) -> RequestList:
     user_service = UserActionsService(db=db, current_user=current_user)
 
     requests = await user_service.get_requests()
