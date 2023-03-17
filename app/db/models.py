@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 metadata = sqlalchemy.MetaData()
 
+
 # User model
 users = sqlalchemy.Table(
     "users",
@@ -36,7 +37,6 @@ company_members = sqlalchemy.Table(
     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
     sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),
     sqlalchemy.Column("admin", sqlalchemy.Boolean)
-
 )
 
 
@@ -59,4 +59,36 @@ requests = sqlalchemy.Table(
     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
     sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),
     sqlalchemy.Column("message", sqlalchemy.Text)
+)
+
+
+# Quizz model
+quizzes = sqlalchemy.Table(
+    "quizzes",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("title", sqlalchemy.String()),
+    sqlalchemy.Column("description", sqlalchemy.Text),
+    sqlalchemy.Column("pass_freq", sqlalchemy.Integer),
+    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
+)
+
+
+# Question model
+questions = sqlalchemy.Table(
+    "questions",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False),
+    sqlalchemy.Column("title", sqlalchemy.String),
+    sqlalchemy.Column("correct_answer", sqlalchemy.Integer)
+)
+
+
+# Answer model
+answers = sqlalchemy.Table(
+    "answers",
+    metadata,
+    sqlalchemy.Column("question_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False),
+    sqlalchemy.Column("answer", sqlalchemy.String)
 )
