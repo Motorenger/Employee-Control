@@ -2,6 +2,7 @@ from fastapi import HTTPException
 
 from databases import Database
 
+from services.company_logic import CompanyService
 from db.models import companies, invites, requests, users, company_members
 from schemas.company_schemas import Company, CompanyBase, CompanyList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
@@ -78,7 +79,7 @@ class CompanyActionsService(CompanyService):
         request = await self.db.fetch_one(query=query)
 
         query = self.company_members.insert()
-        values = {"user_id": request.user_id, "company_id": request.company_id}
+        values = {"user_id": request.user_id, "company_id": request.company_id, "admin": False}
 
         await self.db.execute(query=query, values=values)
 
@@ -96,3 +97,22 @@ class CompanyActionsService(CompanyService):
 
         query = self.company_members.delete().where(self.company_members.c.user_id == user_id)
         await self.db.execute(query=query)
+
+    async def admin(self, user_id: int):
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
+
+        query = self.company_members.update().where(self.company_members.c.user_id == user_id).values({"admin": True})
+        await self.db.execute(query)
+
+    async def get_admins(self) -> UserList:
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
+
+        query = users.select().join(self.company_members).where(self.company_members.c.company_id == self.company_id).where(self.company_members.c.admin == True).where(users.c.id == self.company_members.c.user_id)
+        admins = await self.db.fetch_all(query=query)
+        return UserList(users=admins)
+
+    async def remove_admins(self, user_id: int):
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
+
+        query = self.company_members.update().where(self.company_members.c.user_id == user_id).values({"admin": False})
+        await self.db.execute(query)

@@ -161,9 +161,9 @@ async def invite_accept(company_id: int,
                         db: Database = Depends(get_db)
                         ):
     company_actions_service = CompanyActionsService(company_id=company_id,
-                                                      current_user=current_user,
-                                                      db=db
-                                                      )
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
     await company_actions_service.accept_request(request_id=request_id)
 
 
@@ -192,3 +192,43 @@ async def delete_member(company_id: int,
                                                     db=db
                                                     )
     await company_actions_service.delete_member(user_id=user_id)
+
+
+@router.post("/{company_id}/members/admin/{user_id}", status_code=200)
+async def admin(company_id: int,
+                        user_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    await company_actions_service.admin(user_id=user_id)
+
+
+@router.delete("/{company_id}/members/admin/{user_id}", status_code=200)
+async def remove_admin(company_id: int,
+                        user_id: int,
+                        current_user: User = Depends(get_user),
+                        db: Database = Depends(get_db)
+                    ):
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    await company_actions_service.remove_admins(user_id=user_id)
+
+
+@router.get("/{company_id}/members/admins", response_model=UserList)
+async def company_admins(company_id: int,
+                          params: Params = Depends(), 
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> UserList:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    admins = await company_actions_service.get_admins()
+    return admins
