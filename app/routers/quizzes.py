@@ -19,12 +19,12 @@ router = APIRouter(
 )
 
 
-@router.post("/{company_id}")
+@router.post("/{company_id}", response_model=Quizz)
 async def create_quizz(company_id: int,
                        quizz_data: QuizzCreate, 
                        current_user: User = Depends(get_user),
                        db: Database = Depends(get_db)
-                       ):
+                       ) -> Quizz:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
     return await quizz_service.create_quizz(company_id=company_id, quizz_data=quizz_data)
@@ -42,7 +42,7 @@ async def create_quizz(company_id: int,
 
 
 @router.put("/{company_id}/{quizz_id}", response_model=Quizz)
-async def create_quizz(company_id: int,
+async def update_quizz(company_id: int,
                        quizz_id: int,
                        quizz_data: QuizzEdit,
                        current_user: User = Depends(get_user),
@@ -50,7 +50,7 @@ async def create_quizz(company_id: int,
                        ) -> Quizz:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
-    return await quizz_service.update_company(company_id=company_id,
+    return await quizz_service.update_quizz(company_id=company_id,
                                              quizz_id=quizz_id,
                                              quizz_data=quizz_data
                                              )

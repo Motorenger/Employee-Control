@@ -70,7 +70,11 @@ quizzes = sqlalchemy.Table(
     sqlalchemy.Column("title", sqlalchemy.String()),
     sqlalchemy.Column("description", sqlalchemy.Text),
     sqlalchemy.Column("pass_freq", sqlalchemy.Integer),
-    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
+    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
+    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
+    sqlalchemy.Column("updated_at", sqlalchemy.DateTime, nullable=True),
+    sqlalchemy.Column("created_by", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
+    sqlalchemy.Column("updated_by", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=True)
 )
 
 

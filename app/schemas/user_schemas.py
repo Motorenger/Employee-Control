@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+
 
 from pydantic import BaseModel, Field, EmailStr
 
@@ -22,7 +23,7 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     id: int
     is_active: bool | None = None
-    date_joined: datetime.datetime | None = None
+    date_joined: datetime | None = None
 
     class Config:
         orm_mode = True

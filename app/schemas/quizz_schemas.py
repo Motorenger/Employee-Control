@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, conlist
 
 
@@ -23,7 +25,10 @@ class Quizz(BaseModel):
     title: str
     description: str | None = None
     pass_freq: int
-
+    created_at: datetime
+    updated_at: datetime | None = None
+    created_by: int
+    updated_by: int | None = None
 
 class QuizzEdit(BaseModel):
     title: str | None = None

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import HTTPException
 
 from databases import Database
@@ -22,7 +24,9 @@ class QuizzService(CompanyService):
         quizz_d = {"title": quizz_data.title,
                    "description": quizz_data.description,
                    "pass_freq": quizz_data.pass_freq,
-                   "company_id":company_id
+                   "company_id":company_id,
+                   "created_at": datetime.now(),
+                   "created_by": self.current_user.id
                   }
 
         query = self.quizzes.insert().returning(self.quizzes.c.id)
@@ -47,7 +51,7 @@ class QuizzService(CompanyService):
             query = self.answers.insert()
             await self.db.execute_many(query=query, values=answers_d)
 
-        return await self.db.fetch_all(query=self.quizzes.select())
+        return Quizz(**await self.db.fetch_one(query=self.quizzes.select().where(self.quizzes.c.id == quizz_id)))
 
     async def delete_quizz(self, company_id: int, quizz_id: int):
         await self.check_for_existing(company_id=company_id, check_owner_admin=True)
@@ -55,11 +59,12 @@ class QuizzService(CompanyService):
         query = self.quizzes.delete().where(self.quizzes.c.id == quizz_id)
         await self.db.execute(query=query)
 
-    async def update_company(self, company_id: int, quizz_id: int, quizz_data: QuizzEdit) -> Quizz:
+    async def update_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzEdit) -> Quizz:
         await self.check_for_existing(company_id=company_id, check_owner_admin=True)
 
         update_data = {field:value for field, value in quizz_data.dict().items() if value is not None}
-        
+        update_data["updated_at"] = datetime.now()
+        update_data["updated_by"] = self.current_user.id
         query = self.quizzes.update().where(self.quizzes.c.id == quizz_id).values(**update_data)
         await self.db.execute(query)
 
