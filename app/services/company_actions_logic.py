@@ -30,7 +30,9 @@ class CompanyActionsService(CompanyService):
     async def get_members(self) -> UserList:
         await self.check_for_existing(company_id=self.company_id, check_owner=True)
 
-        query = users.select().join(self.company_members).where(self.company_members.c.company_id == self.company_id).where(users.c.id == self.company_members.c.user_id)
+        query = users.select().join(self.company_members).where(
+                                                        self.company_members.c.company_id == self.company_id
+                                                        ).where(users.c.id == self.company_members.c.user_id)
         members = await self.db.fetch_all(query=query)
         return UserList(users=members)
 

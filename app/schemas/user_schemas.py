@@ -24,6 +24,8 @@ class User(UserBase):
     id: int
     is_active: bool | None = None
     date_joined: datetime | None = None
+    questions: int
+    correct: int 
 
     class Config:
         orm_mode = True

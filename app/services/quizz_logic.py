@@ -1,22 +1,23 @@
 from datetime import datetime
 
-from fastapi import HTTPException
-
 from databases import Database
 
 from services.company_logic import CompanyService
-from db.models import companies, quizzes, questions, answers
-from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz
+from db.models import questions, answers, records, users
+from schemas.quizz_schemas import (QuizzCreate, QuizzEdit,
+                                   Quizz, Questsion,
+                                   QuestionList, QuizzFull,
+                                   QuizzData)
 from schemas.user_schemas import User
 
 
 class QuizzService(CompanyService):
     def __init__(self, db: Database, current_user: User | None = None):
         super().__init__(db=db, current_user=current_user)
-        self.quizzes = quizzes
         self.questions = questions
         self.answers = answers
-
+        self.records = records
+        self.users = users
 
     async def create_quizz(self, company_id: int, quizz_data: QuizzCreate):
         await self.check_for_existing(company_id=company_id, check_owner_admin=True)
@@ -24,7 +25,7 @@ class QuizzService(CompanyService):
         quizz_d = {"title": quizz_data.title,
                    "description": quizz_data.description,
                    "pass_freq": quizz_data.pass_freq,
-                   "company_id":company_id,
+                   "company_id": company_id,
                    "created_at": datetime.now(),
                    "created_by": self.current_user.id
                   }
@@ -39,7 +40,7 @@ class QuizzService(CompanyService):
                 }
             query = self.questions.insert().returning(self.questions.c.id)
             question_id = await self.db.execute(query=query, values=question_d)
-            answers_d = [ 
+            answers_d = [
                 {
                     "answer": answer.answer,
                     "question_id": question_id
@@ -71,3 +72,66 @@ class QuizzService(CompanyService):
         query = self.quizzes.select().where(self.quizzes.c.id == quizz_id)
         quizz = await self.db.fetch_one(query=query)
         return Quizz(**quizz)
+
+    async def retrieve_quizz(self, company_id: int, quizz_id: int):
+        await self.check_for_existing(company_id=company_id)
+
+        query = self.quizzes.select().where(self.quizzes.c.id == quizz_id)
+        quizz = await self.db.fetch_one(query=query)
+
+        query = self.questions.select()
+        questions = await self.db.fetch_all(query=query)
+
+        questsions = []
+        for question in questions:
+            answers = []
+            query = self.answers.select().where(self.answers.c.question_id == question.id)
+            answers = await self.db.fetch_all(query=query)
+            questsions.append(Questsion(**question, answers=answers))
+
+        return QuizzFull(**quizz, questions=questsions)
+
+    async def pass_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzData):
+        quizz = await self.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
+        questions_amount = len(quizz.questions)
+        record = {
+            "user_id": self.current_user.id,
+            "company_id": company_id,
+            "quizz_id": quizz_id,
+            "created_at": datetime.now().date(),
+            "questions": questions_amount,
+            }
+        correct = 0
+        for quest_numb, question in enumerate(quizz_data.questions):
+            for question_core in quizz.questions:
+                if question.question_id == question_core.id and question.answer == question_core.correct_answer:
+                    correct += 1
+        record["correct"] = correct
+        if correct == questions_amount:
+            record["average_result"] = 10.0
+        else:
+            record["average_result"] = (correct / questions_amount) * 10
+
+        query = self.records.insert().returning(self.records.c.average_result)
+        average_result = await self.db.execute(query=query, values=record)
+
+        user_data = {
+            "questions": self.current_user.questions + questions_amount,
+            "correct": self.current_user.correct + correct
+        }
+        query = self.users.update().values(**user_data)
+        await self.db.execute(query=query)
+
+        query = self.company_members.select().where(
+                                                self.company_members.c.company_id == company_id
+                                                ).where(self.company_members.c.user_id == self.current_user.id)
+        member = await self.db.fetch_one(query=query)
+        if member:
+            member_data = {
+                "questions": member["questions"] + questions_amount,
+                "answers": member["correct"] + correct
+            }
+            query = self.company_members.update().values(**member_data)
+            await self.db.execute(query=query)
+
+        return average_result

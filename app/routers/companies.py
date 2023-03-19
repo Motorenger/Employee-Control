@@ -236,7 +236,7 @@ async def company_admins(company_id: int,
 
 
 @router.get("/{company_id}/quizzes", response_model=Page)
-async def company_members(company_id: int,
+async def company_quizzes(company_id: int,
                           params: Params = Depends(), 
                           current_user: User = Depends(get_user),
                           db: Database = Depends(get_db)

@@ -30,6 +30,7 @@ class Quizz(BaseModel):
     created_by: int
     updated_by: int | None = None
 
+
 class QuizzEdit(BaseModel):
     title: str | None = None
     description: str | None = None
@@ -38,3 +39,29 @@ class QuizzEdit(BaseModel):
 
 class QuizzList(BaseModel):
     quizzes: list[Quizz]
+
+
+class Answer(AnswerCreate):
+    question_id: int
+
+
+class Questsion(QuestionCreate):
+    id: int
+    answers: list[Answer]
+
+class QuestionList(BaseModel):
+    questions: list[Questsion]
+
+
+class QuizzFull(QuizzCreate):
+    id: int
+    questions: list[Questsion]
+
+
+class QuestionData(BaseModel):
+    question_id: int
+    answer: int
+
+
+class QuizzData(BaseModel):
+    questions: list[QuestionData]
