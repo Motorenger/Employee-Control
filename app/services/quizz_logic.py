@@ -17,21 +17,8 @@ class QuizzService(CompanyService):
         self.questions = questions
         self.answers = answers
 
-
-    async def create_quizz(self, company_id: int, quizz_data: QuizzCreate):
-        await self.check_for_existing(company_id=company_id, check_owner_admin=True)
-
-        quizz_d = {"title": quizz_data.title,
-                   "description": quizz_data.description,
-                   "pass_freq": quizz_data.pass_freq,
-                   "company_id":company_id,
-                   "created_at": datetime.now(),
-                   "created_by": self.current_user.id
-                  }
-
-        query = self.quizzes.insert().returning(self.quizzes.c.id)
-        quizz_id = await self.db.execute(query=query, values=quizz_d)
-        for question in quizz_data.questions:
+    async def create_questions(self, questions):
+        for question in questions:
             question_d = {
                     "title": question.title,
                     "correct_answer": question.correct_answer,
@@ -50,6 +37,21 @@ class QuizzService(CompanyService):
 
             query = self.answers.insert()
             await self.db.execute_many(query=query, values=answers_d)
+
+    async def create_quizz(self, company_id: int, quizz_data: QuizzCreate) -> Quizz:
+        await self.check_for_existing(company_id=company_id, check_owner_admin=True)
+
+        quizz_d = {"title": quizz_data.title,
+                   "description": quizz_data.description,
+                   "pass_freq": quizz_data.pass_freq,
+                   "company_id":company_id,
+                   "created_at": datetime.now(),
+                   "created_by": self.current_user.id
+                  }
+
+        query = self.quizzes.insert().returning(self.quizzes.c.id)
+        quizz_id = await self.db.execute(query=query, values=quizz_d)
+        await self.create_questions(questions=quizz_data.questions)
 
         return Quizz(**await self.db.fetch_one(query=self.quizzes.select().where(self.quizzes.c.id == quizz_id)))
 
