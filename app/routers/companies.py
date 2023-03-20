@@ -5,6 +5,7 @@ from databases import Database
 from fastapi_pagination import Page, Params, paginate
 
 from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
+from schemas.quizz_schemas import QuizzList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
 from schemas.user_schemas import User, UserList
@@ -232,3 +233,16 @@ async def company_admins(company_id: int,
                                                     )
     admins = await company_actions_service.get_admins()
     return admins
+
+
+@router.get("/{company_id}/quizzes", response_model=Page)
+async def company_members(company_id: int,
+                          params: Params = Depends(), 
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> Page:
+    company_actions_service = CompanyService(current_user=current_user,
+                                            db=db
+                                            )
+    quizzes = await company_actions_service.list_quizzes(company_id=company_id,)
+    return paginate(quizzes.quizzes, params)

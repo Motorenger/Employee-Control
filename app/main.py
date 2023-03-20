@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer
 from utils.system_config import envs
 from db.database import get_db
 from core.log_config import init_loggers
-from routers import users, auth, companies
+from routers import users, auth, companies, quizzes
 
 
 init_loggers()
@@ -37,6 +37,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(companies.router)
+app.include_router(quizzes.router)
 
 
 @app.on_event("startup")
