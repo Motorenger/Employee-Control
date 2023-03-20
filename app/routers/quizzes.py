@@ -56,24 +56,24 @@ async def update_quizz(company_id: int,
                                              )
 
 
-@router.get("/{company_id}/{quizz_id}",)
+@router.get("/{company_id}/{quizz_id}", response_model=QuizzFull)
 async def get_quizz(company_id: int,
                        quizz_id: int, 
                        current_user: User = Depends(get_user),
                        db: Database = Depends(get_db)
-                       ):
+                       ) -> QuizzFull:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
     return await quizz_service.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
 
 
-@router.post("/{company_id}/{quizz_id}/pass",)
+@router.post("/{company_id}/{quizz_id}/pass", response_model=float)
 async def pass_quizz(company_id: int,
                     quizz_id: int, 
                     quizz_data: QuizzData,
                     current_user: User = Depends(get_user),
                     db: Database = Depends(get_db)
-                    ):
+                    ) -> float:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
     return await quizz_service.pass_quizz(company_id=company_id,

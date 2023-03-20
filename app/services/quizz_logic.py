@@ -76,7 +76,7 @@ class QuizzService(CompanyService):
         quizz = await self.db.fetch_one(query=query)
         return Quizz(**quizz)
 
-    async def retrieve_quizz(self, company_id: int, quizz_id: int):
+    async def retrieve_quizz(self, company_id: int, quizz_id: int) -> QuizzFull:
         await self.check_for_existing(company_id=company_id)
 
         query = self.quizzes.select().where(self.quizzes.c.id == quizz_id)
@@ -110,10 +110,7 @@ class QuizzService(CompanyService):
                 if question.question_id == question_core.id and question.answer == question_core.correct_answer:
                     correct += 1
         record["correct"] = correct
-        if correct == questions_amount:
-            record["average_result"] = 10.0
-        else:
-            record["average_result"] = (correct / questions_amount) * 10
+        record["average_result"] = (correct / questions_amount) * 10
 
         query = self.records.insert().returning(self.records.c.average_result)
         average_result = await self.db.execute(query=query, values=record)
