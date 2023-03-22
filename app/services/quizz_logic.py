@@ -2,6 +2,8 @@ from datetime import datetime
 
 from databases import Database
 
+from fastapi import HTTPException
+
 from services.company_logic import CompanyService
 from db.models import questions, records, users
 from schemas.quizz_schemas import (QuizzCreate, QuizzEdit,
@@ -19,6 +21,8 @@ class QuizzService(CompanyService):
         self.users = users
 
     async def create_questions(self, question, quizz_id: int):
+        if len(question.answers) < 2:
+            raise HTTPException(status_code=422, detail="At least 2 answers")
         question_d = {
                 "title": question.title,
                 "correct_answer": question.correct_answer,
