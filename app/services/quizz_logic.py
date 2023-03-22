@@ -3,9 +3,9 @@ from datetime import datetime
 from databases import Database
 
 from services.company_logic import CompanyService
-from db.models import questions, answers, records, users
+from db.models import questions, records, users
 from schemas.quizz_schemas import (QuizzCreate, QuizzEdit,
-                                   Quizz, Questsion,
+                                   Quizz, Question,
                                    QuestionList, QuizzFull,
                                    QuizzData)
 from schemas.user_schemas import User
@@ -15,30 +15,18 @@ class QuizzService(CompanyService):
     def __init__(self, db: Database, current_user: User | None = None):
         super().__init__(db=db, current_user=current_user)
         self.questions = questions
-        self.answers = answers
         self.records = records
         self.users = users
 
-    async def create_questions(self, questions):
-        for question in questions:
-            question_d = {
-                    "title": question.title,
-                    "correct_answer": question.correct_answer,
-                    "quizz_id": quizz_id
-                }
-            query = self.questions.insert().returning(self.questions.c.id)
-            question_id = await self.db.execute(query=query, values=question_d)
-            answers_d = [ 
-                {
-                    "answer": answer.answer,
-                    "question_id": question_id
-
-                }
-                for answer in question.answers
-            ]
-
-            query = self.answers.insert()
-            await self.db.execute_many(query=query, values=answers_d)
+    async def create_questions(self, question, quizz_id: int):
+        question_d = {
+                "title": question.title,
+                "correct_answer": question.correct_answer,
+                "quizz_id": quizz_id,
+                "answers": {key: value.dict() for key, value in question.answers.items()}
+            }
+        query = self.questions.insert().returning(self.questions.c.id)
+        question_id = await self.db.execute(query=query, values=question_d)
 
     async def create_quizz(self, company_id: int, quizz_data: QuizzCreate) -> Quizz:
         await self.check_for_existing(company_id=company_id, check_owner_admin=True)
@@ -53,7 +41,8 @@ class QuizzService(CompanyService):
 
         query = self.quizzes.insert().returning(self.quizzes.c.id)
         quizz_id = await self.db.execute(query=query, values=quizz_d)
-        await self.create_questions(questions=quizz_data.questions)
+        for question in quizz_data.questions:
+            await self.create_questions(question=question, quizz_id=quizz_id)
 
         return Quizz(**await self.db.fetch_one(query=self.quizzes.select().where(self.quizzes.c.id == quizz_id)))
 
@@ -76,25 +65,16 @@ class QuizzService(CompanyService):
         quizz = await self.db.fetch_one(query=query)
         return Quizz(**quizz)
 
-    async def retrieve_quizz(self, company_id: int, quizz_id: int) -> QuizzFull:
+    async def retrieve_quizz(self, company_id: int, quizz_id: int) -> QuestionList:
         await self.check_for_existing(company_id=company_id)
 
-        query = self.quizzes.select().where(self.quizzes.c.id == quizz_id)
-        quizz = await self.db.fetch_one(query=query)
-
-        query = self.questions.select()
+        query = self.questions.select().where(self.questions.c.quizz_id == quizz_id)
         questions = await self.db.fetch_all(query=query)
 
-        questsions = []
-        for question in questions:
-            answers = []
-            query = self.answers.select().where(self.answers.c.question_id == question.id)
-            answers = await self.db.fetch_all(query=query)
-            questsions.append(Questsion(**question, answers=answers))
+        questions_d = [Question(**question) for question in questions]
+        return QuestionList(questions=questions_d)
 
-        return QuizzFull(**quizz, questions=questsions)
-
-    async def pass_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzData):
+    async def pass_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzData) -> float:
         quizz = await self.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
         questions_amount = len(quizz.questions)
         record = {
@@ -105,10 +85,11 @@ class QuizzService(CompanyService):
             "questions": questions_amount,
             }
         correct = 0
-        for quest_numb, question in enumerate(quizz_data.questions):
-            for question_core in quizz.questions:
-                if question.question_id == question_core.id and question.answer == question_core.correct_answer:
-                    correct += 1
+
+        for question_core in quizz.questions:
+            questions_dict = quizz_data.questions
+            if question_core.id in questions_dict.keys() and questions_dict.get(question_core.id).answer == question_core.correct_answer:
+                correct += 1
         record["correct"] = correct
         record["average_result"] = (correct / questions_amount) * 10
 

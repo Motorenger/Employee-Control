@@ -90,16 +90,8 @@ questions = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False),
     sqlalchemy.Column("title", sqlalchemy.String),
-    sqlalchemy.Column("correct_answer", sqlalchemy.Integer)
-)
-
-
-# Answer model
-answers = sqlalchemy.Table(
-    "answers",
-    metadata,
-    sqlalchemy.Column("question_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False),
-    sqlalchemy.Column("answer", sqlalchemy.String)
+    sqlalchemy.Column("correct_answer", sqlalchemy.Integer),
+    sqlalchemy.Column("answers", sqlalchemy.JSON)
 )
 
 

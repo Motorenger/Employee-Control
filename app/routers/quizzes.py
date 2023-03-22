@@ -5,7 +5,7 @@ from databases import Database
 from fastapi_pagination import Page, Params, paginate
 
 from utils.auth import get_user
-from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz, QuizzFull, QuizzData
+from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz, QuizzFull, QuizzData, QuestionList
 from schemas.user_schemas import User
 from services.company_logic import CompanyService
 from services.quizz_logic import QuizzService
@@ -56,12 +56,12 @@ async def update_quizz(company_id: int,
                                              )
 
 
-@router.get("/{company_id}/{quizz_id}", response_model=QuizzFull)
+@router.get("/{company_id}/{quizz_id}", response_model=QuestionList)
 async def get_quizz(company_id: int,
                        quizz_id: int, 
                        current_user: User = Depends(get_user),
                        db: Database = Depends(get_db)
-                       ) -> QuizzFull:
+                       ) -> QuestionList:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
     return await quizz_service.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
