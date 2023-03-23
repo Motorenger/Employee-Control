@@ -10,7 +10,7 @@ class AnswerCreate(BaseModel):
 class QuestionCreate(BaseModel):
     title: str
     correct_answer: int
-    answers: conlist(AnswerCreate, min_items=2)
+    answers: dict[int, AnswerCreate]
 
 
 class QuizzCreate(BaseModel):
@@ -30,6 +30,7 @@ class Quizz(BaseModel):
     created_by: int
     updated_by: int | None = None
 
+
 class QuizzEdit(BaseModel):
     title: str | None = None
     description: str | None = None
@@ -38,3 +39,27 @@ class QuizzEdit(BaseModel):
 
 class QuizzList(BaseModel):
     quizzes: list[Quizz]
+
+
+class Answer(AnswerCreate):
+    question_id: int
+
+
+class Question(QuestionCreate):
+    id: int
+
+class QuestionList(BaseModel):
+    questions: list[Question]
+
+
+class QuizzFull(QuizzCreate):
+    id: int
+    questions: list[Question]
+
+
+class QuestionData(BaseModel):
+    answer: int
+
+
+class QuizzData(BaseModel):
+    questions: dict[int, QuestionData]

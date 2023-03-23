@@ -27,7 +27,7 @@ async def authenticate_user(form_data: UserSingin, db: Database = Depends(get_db
 
 def create_access_token(data: dict) -> Token:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=30)
+    expire = datetime.utcnow() + timedelta(minutes=120)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, envs["SECRET_KEY"], algorithm=envs["ALGORITHM_AUTH_2"])
     return Token(token=encoded_jwt, token_type="bearer")

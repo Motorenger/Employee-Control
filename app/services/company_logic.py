@@ -24,6 +24,7 @@ class CompanyService:
                                  company_id: int | None = None,
                                  check_owner: bool = False,
                                  check_owner_admin: bool = False,
+                                 check_member: bool = False,
                                  exeptions: bool = True
                                  ):
         if comp_name:
@@ -42,6 +43,10 @@ class CompanyService:
             admin = await self.db.fetch_one(query=self.company_members.select().where(self.company_members.c.user_id == self.current_user.id).where(self.company_members.c.admin == True))
             if company.owner_id != self.current_user.id and admin is None:
                 raise HTTPException(status_code=403, detail="You is not allowed")
+        if check_member:
+            member = await self.db.fetch_one(query=self.company_members.select().where(self.company_members.c.user_id == self.current_user.id))
+            if member is None:
+                raise HTTPException(status_code=403, detail="You are not allowed")
         return company
 
     async def get_companies(self) -> CompanyList:
@@ -68,8 +73,8 @@ class CompanyService:
 
     async def update_company(self, company_id: int, company_data: str) -> Company:
         company = Company(**await self.check_for_existing(company_id=company_id, check_owner=True))
-        update_data = {field:value for field, value in company_data.dict().items() if value is not None}
-        
+        update_data = {field: value for field, value in company_data.dict().items() if value is not None}
+
         query = self.companies.update().where(self.companies.c.id == company_id).values(**update_data)
         await self.db.execute(query)
 
@@ -78,7 +83,7 @@ class CompanyService:
         return Company(**company)
 
     async def delete_company(self, company_id: int):
-        company = await self.check_for_existing(company_id=company_id)
+        await self.check_for_existing(company_id=company_id)
 
         query = self.companies.delete().where(self.companies.c.id == company_id)
         await self.db.execute(query)
@@ -86,5 +91,5 @@ class CompanyService:
     async def list_quizzes(self, company_id: int) -> QuizzList:
         query = self.quizzes.select().where(self.quizzes.c.company_id == company_id)
         quizzes = await self.db.fetch_all(query=query)
-        
+
         return QuizzList(quizzes=quizzes)

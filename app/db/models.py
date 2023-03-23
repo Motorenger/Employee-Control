@@ -14,7 +14,9 @@ users = sqlalchemy.Table(
     sqlalchemy.Column("password", sqlalchemy.String),
     sqlalchemy.Column("username", sqlalchemy.String(20)),
     sqlalchemy.Column("is_active", sqlalchemy.Boolean),
-    sqlalchemy.Column("date_joined", sqlalchemy.DateTime)
+    sqlalchemy.Column("date_joined", sqlalchemy.DateTime),
+    sqlalchemy.Column("questions", sqlalchemy.Integer),
+    sqlalchemy.Column("correct", sqlalchemy.Integer)
 )
 
 
@@ -36,7 +38,9 @@ company_members = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
     sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),
-    sqlalchemy.Column("admin", sqlalchemy.Boolean)
+    sqlalchemy.Column("admin", sqlalchemy.Boolean),
+    sqlalchemy.Column("questions", sqlalchemy.Integer),
+    sqlalchemy.Column("correct", sqlalchemy.Integer)
 )
 
 
@@ -72,6 +76,7 @@ quizzes = sqlalchemy.Table(
     sqlalchemy.Column("pass_freq", sqlalchemy.Integer),
     sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
     sqlalchemy.Column("created_at", sqlalchemy.DateTime),
+    sqlalchemy.Column("created_at", sqlalchemy.DateTime),
     sqlalchemy.Column("updated_at", sqlalchemy.DateTime, nullable=True),
     sqlalchemy.Column("created_by", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
     sqlalchemy.Column("updated_by", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=True)
@@ -85,14 +90,20 @@ questions = sqlalchemy.Table(
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False),
     sqlalchemy.Column("title", sqlalchemy.String),
-    sqlalchemy.Column("correct_answer", sqlalchemy.Integer)
+    sqlalchemy.Column("correct_answer", sqlalchemy.Integer),
+    sqlalchemy.Column("answers", sqlalchemy.JSON)
 )
 
 
-# Answer model
-answers = sqlalchemy.Table(
-    "answers",
+# Quizz completion recorn
+records = sqlalchemy.Table(
+    "records",
     metadata,
-    sqlalchemy.Column("question_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False),
-    sqlalchemy.Column("answer", sqlalchemy.String)
+    sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
+    sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),
+    sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id"), nullable=False),
+    sqlalchemy.Column("average_result", sqlalchemy.Float),
+    sqlalchemy.Column("questions", sqlalchemy.Integer),
+    sqlalchemy.Column("correct", sqlalchemy.Integer),
+    sqlalchemy.Column("created_at", sqlalchemy.Date),
 )

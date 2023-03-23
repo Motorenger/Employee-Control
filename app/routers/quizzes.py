@@ -5,7 +5,7 @@ from databases import Database
 from fastapi_pagination import Page, Params, paginate
 
 from utils.auth import get_user
-from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz
+from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz, QuizzFull, QuizzData, QuestionList
 from schemas.user_schemas import User
 from services.company_logic import CompanyService
 from services.quizz_logic import QuizzService
@@ -31,7 +31,7 @@ async def create_quizz(company_id: int,
 
 
 @router.delete("/{company_id}/{quizz_id}", status_code=204)
-async def create_quizz(company_id: int,
+async def delete_quizz(company_id: int,
                        quizz_id: int,
                        current_user: User = Depends(get_user),
                        db: Database = Depends(get_db)
@@ -54,3 +54,28 @@ async def update_quizz(company_id: int,
                                              quizz_id=quizz_id,
                                              quizz_data=quizz_data
                                              )
+
+
+@router.get("/{company_id}/{quizz_id}", response_model=QuestionList)
+async def get_quizz(company_id: int,
+                       quizz_id: int, 
+                       current_user: User = Depends(get_user),
+                       db: Database = Depends(get_db)
+                       ) -> QuestionList:
+    quizz_service = QuizzService(db=db, current_user=current_user)
+
+    return await quizz_service.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
+
+
+@router.post("/{company_id}/{quizz_id}/pass", response_model=float)
+async def pass_quizz(company_id: int,
+                    quizz_id: int, 
+                    quizz_data: QuizzData,
+                    current_user: User = Depends(get_user),
+                    db: Database = Depends(get_db)
+                    ) -> float:
+    quizz_service = QuizzService(db=db, current_user=current_user)
+
+    return await quizz_service.pass_quizz(company_id=company_id,
+                                          quizz_id=quizz_id,
+                                          quizz_data=quizz_data)

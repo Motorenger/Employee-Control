@@ -63,6 +63,8 @@ class UserService:
         user_dict["password"] = get_password_hash(user.password)
         user_dict["is_active"] = False
         user_dict["date_joined"] = datetime.now()
+        user_dict["questions"] = 0
+        user_dict["correct"] = 0
         query = self.users.insert()
         await self.db.execute(query=query, values=user_dict)
 
@@ -111,7 +113,9 @@ class UserActionsService(UserService):
         invite = await self.db.fetch_one(query=query)
 
         query = self.company_members.insert()
-        values = {"user_id": invite.user_id, "company_id": invite.company_id, "admin": False}
+        values = {"user_id": invite.user_id, "company_id": invite.company_id,
+                  "admin": False, "questions": 0, "correct": 0
+                  }
 
         await self.db.execute(query=query, values=values)
 
