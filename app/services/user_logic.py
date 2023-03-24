@@ -111,7 +111,10 @@ class UserActionsService(UserService):
     async def accept_invite(self, invite_id: int):
         query = self.invites.select().where(self.invites.c.id == invite_id)
         invite = await self.db.fetch_one(query=query)
-
+        if invite is None:
+            raise HTTPException(status_code=404, detail="Invite not found")
+        if invite.user_id != self.current_user.id:
+            raise HTTPException(status_code=400, detail="It is not your invite")
         query = self.company_members.insert()
         values = {"user_id": invite.user_id, "company_id": invite.company_id,
                   "admin": False, "questions": 0, "correct": 0
@@ -123,7 +126,12 @@ class UserActionsService(UserService):
         await self.db.execute(query)
 
     async def decline_invite(self, invite_id: int):
-
+        query = self.invites.select().where(self.invites.c.id == invite_id)
+        invite = await self.db.fetch_one(query=query)
+        if invite is None:
+            raise HTTPException(status_code=404, detail="Invite not found")
+        if invite.user_id != self.current_user.id:
+            raise HTTPException(status_code=400, detail="User does not have an invite to the company")
         query = self.invites.delete().where(self.invites.c.id == invite_id)
         await self.db.execute(query)
 
@@ -134,7 +142,7 @@ class UserActionsService(UserService):
         return RequestList(requests=requests)
 
     async def decline_request(self, request_id: int):
-
+        
         query = self.requests.delete().where(self.requests.c.id == request_id)
         await self.db.execute(query)
 

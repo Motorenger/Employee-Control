@@ -1,8 +1,6 @@
-import os
 import asyncio
 
 import pytest
-import pytest_asyncio
 
 from typing import AsyncGenerator
 from starlette.testclient import TestClient
@@ -10,7 +8,8 @@ from databases import Database
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 from httpx import AsyncClient
-
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 #import your app
 from app.main import app
@@ -19,10 +18,10 @@ from app.db.models import metadata
 #import your test urls for db
 from app.utils.system_config import envs
 #import your get_db func
-from app.db.database import get_db, database
+from app.main import get_db
 
 
-engine_test = create_async_engine(envs["DATABASE_URL_TEST"], poolclass=NullPool)
+engine = create_async_engine(envs["DATABASE_URL_TEST"], poolclass=NullPool)
 
 
 @pytest.fixture(scope="session")
@@ -33,19 +32,20 @@ def event_loop():
 
 
 @pytest.fixture(scope="session")
-def test_app():
-    client = TestClient(app)
-    yield client
+async def test_app():
+    await get_db().connect()
+    with TestClient(app) as client:   # context manager will invoke startup event 
+        yield client
 
 
 @pytest.fixture(autouse=True, scope='session')
 async def prepare_database():
-    await database.connect()
-    async with engine_test.begin() as conn:
+    await get_db().connect()
+    async with engine.begin() as conn:
         await conn.run_sync(metadata.create_all)
     yield
-    await database.disconnect()
-    async with engine_test.begin() as conn:
+    await get_db().disconnect()
+    async with engine.begin() as conn:
         await conn.run_sync(metadata.drop_all)
 
 
@@ -78,3 +78,66 @@ def users_tokens():
     tokens_store = dict()
     return tokens_store
 
+
+@pytest.fixture(scope='session')
+def quizz_payload():
+    return {
+    "title": "Hello?",
+    "pass_freq": 10,
+    "questions": [
+        {
+            "title": "What is radius?",
+            "correct_answer": 2,
+            "answers": {
+                "1": {
+                    "answer": "Half of the circle lengh"
+                },
+                "2": {
+                    "answer": "Answer 2"
+                }
+            }
+        },
+        {
+            "title": "Where is piramid?",
+            "correct_answer": 1,
+            "answers": {
+                "1": {
+                    "answer": "Cosinus"
+                },
+                "2": {
+                    "answer": "Sinus"
+                }
+            }
+        }
+    ]
+}
+
+@pytest.fixture(scope="session")
+def quizz_pass_payload():
+    payload = {
+        "questions": {
+            "1": {
+                "answer": 1
+            },
+            "2": {
+                "answer": 2
+            }
+        }
+    }
+   
+    return payload
+
+@pytest.fixture(scope="session")
+def quizz_pass_payload_correct():
+    payload = {
+        "questions": {
+            "1": {
+                "answer": 2
+            },
+            "2": {
+                "answer": 1
+            }
+        }
+    }
+   
+    return payload

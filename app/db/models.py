@@ -88,6 +88,7 @@ questions = sqlalchemy.Table(
     "questions",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("question_numb", sqlalchemy.Integer),
     sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id", ondelete="CASCADE"), nullable=False),
     sqlalchemy.Column("title", sqlalchemy.String),
     sqlalchemy.Column("correct_answer", sqlalchemy.Integer),

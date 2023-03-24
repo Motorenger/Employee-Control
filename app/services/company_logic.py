@@ -35,7 +35,7 @@ class CompanyService:
         if not exeptions:
             return company
         if company is None:
-            raise HTTPException(status_code=404, detail="Not Found")
+            raise HTTPException(status_code=404, detail="This company not found")
         if check_owner:
             if company.owner_id != self.current_user.id:
                 raise HTTPException(status_code=403, detail="It is not your company")
@@ -55,7 +55,7 @@ class CompanyService:
         return CompanyList(companies=companies)
 
     async def retrieve_company(self, company_id: int) -> Company:
-        company = await self.check_for_existing(company_id=company_id, check_owner=True)
+        company = await self.check_for_existing(company_id=company_id)
 
         return Company(**company)
 
@@ -83,7 +83,7 @@ class CompanyService:
         return Company(**company)
 
     async def delete_company(self, company_id: int):
-        await self.check_for_existing(company_id=company_id)
+        await self.check_for_existing(company_id=company_id, check_owner=True)
 
         query = self.companies.delete().where(self.companies.c.id == company_id)
         await self.db.execute(query)

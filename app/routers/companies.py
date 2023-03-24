@@ -156,7 +156,7 @@ async def list_requests(company_id: int,
 
 
 @router.post("/{company_id}/requests/accept/{request_id}", status_code=201)
-async def invite_accept(company_id: int,
+async def request_accept(company_id: int,
                         request_id: int,
                         current_user: User = Depends(get_user),
                         db: Database = Depends(get_db)
@@ -179,7 +179,7 @@ async def request_delete(request_id: int,
                                                     db=db
                                                     )
 
-    await company_actions_service.decline_request(request_id=request_id)
+    await company_actions_service.delete_request(request_id=request_id)
 
 
 @router.delete("/{company_id}/members/{user_id}", status_code=204)
@@ -195,7 +195,7 @@ async def delete_member(company_id: int,
     await company_actions_service.delete_member(user_id=user_id)
 
 
-@router.post("/{company_id}/members/admin/{user_id}", status_code=200)
+@router.post("/{company_id}/members/admin/{user_id}", status_code=201)
 async def admin(company_id: int,
                         user_id: int,
                         current_user: User = Depends(get_user),
@@ -208,7 +208,7 @@ async def admin(company_id: int,
     await company_actions_service.admin(user_id=user_id)
 
 
-@router.delete("/{company_id}/members/admin/{user_id}", status_code=200)
+@router.delete("/{company_id}/members/admin/{user_id}", status_code=204)
 async def remove_admin(company_id: int,
                         user_id: int,
                         current_user: User = Depends(get_user),

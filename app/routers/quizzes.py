@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.post("/{company_id}", response_model=Quizz)
+@router.post("/{company_id}", response_model=Quizz, status_code=201)
 async def create_quizz(company_id: int,
                        quizz_data: QuizzCreate, 
                        current_user: User = Depends(get_user),

@@ -21,7 +21,7 @@ class CompanyActionsService(CompanyService):
         self.company_members = company_members
 
     async def get_invites(self) -> InvitesList:
-        await self.check_for_existing(company_id=self.company_id)
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
 
         query = self.invites.select().where(self.invites.c.company_id == self.company_id)
         invites = await self.db.fetch_all(query=query)
@@ -37,9 +37,9 @@ class CompanyActionsService(CompanyService):
         return UserList(users=members)
 
     async def send_invite(self, invite_data: InviteData):
-        await self.check_for_existing(company_id=self.company_id, check_owner=True)
         if not await self.user_service.check_for_existing(user_id=invite_data.user_id):
-            raise HTTPException(status_code=404, detail="Not Found")
+            raise HTTPException(status_code=404, detail="This user not found")
+        await self.check_for_existing(company_id=self.company_id, check_owner=True)
         if invite_data.user_id == self.current_user.id:
             raise HTTPException(status_code=404, detail="You can't invite yourself")
         invite_data = invite_data.dict()
@@ -63,11 +63,13 @@ class CompanyActionsService(CompanyService):
         return RequestList(requests=requests)
 
     async def send_request(self, request_data: RequestData):
-        await self.check_for_existing(company_id=request_data.company_id)
+        company = await self.check_for_existing(company_id=request_data.company_id)
+        if company.owner_id == self.current_user.id:
+            raise HTTPException(status_code=400, detail="User is already a member of the company")
         query = users.select().join(self.company_members).where(self.company_members.c.company_id == request_data.company_id).where(users.c.id == self.current_user.id)
         user = await self.db.fetch_one(query=query)
         if user is not None:
-            raise HTTPException(status_code=404, detail="You are already a member")
+            raise HTTPException(status_code=400, detail="User is already a member of the company")
         request_data = request_data.dict()
         request_data["user_id"] = self.current_user.id
         request = RequestCreate(**request_data)
@@ -80,10 +82,10 @@ class CompanyActionsService(CompanyService):
         query = self.requests.select().where(self.requests.c.id == request_id)
         request = await self.db.fetch_one(query=query)
 
+        values_d = {"user_id": request.user_id, "company_id": request.company_id, "admin": False}
         query = self.company_members.insert()
-        values = {"user_id": request.user_id, "company_id": request.company_id, "admin": False}
 
-        await self.db.execute(query=query, values=values)
+        await self.db.execute(query=query, values=values_d)
 
         query = self.requests.delete().where(self.requests.c.id == request_id)
         await self.db.execute(query)
