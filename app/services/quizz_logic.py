@@ -79,7 +79,7 @@ class QuizzService(CompanyService):
         questions_d = [Question(**question) for question in questions]
         return QuestionList(questions=questions_d)
 
-    async def pass_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzData) -> float:
+    async def pass_quizz(self, company_id: int, quizz_id: int, quizz_data: QuizzData) -> dict:
         quizz = await self.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
         questions_amount = len(quizz.questions)
         if questions_amount < 2:
@@ -121,4 +121,4 @@ class QuizzService(CompanyService):
             query = self.company_members.update().values(**member_data)
             await self.db.execute(query=query)
 
-        return average_result
+        return record

@@ -15,6 +15,7 @@ def get_db() -> Database:
     return database
 
 
-async def get_redis():
-    async with aioredis.from_url(envs["REDIS_URL"],  db=1) as redis:
-        return redis
+redis = aioredis.from_url(envs["REDIS_URL"],  db=1)
+
+def get_redis():
+    return redis

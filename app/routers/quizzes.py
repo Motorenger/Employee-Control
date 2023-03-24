@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 
 from databases import Database
 
 from fastapi_pagination import Page, Params, paginate
 
 from utils.auth import get_user
+from utils.caching import set_cache
 from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz, QuizzFull, QuizzData, QuestionList
 from schemas.user_schemas import User
 from services.company_logic import CompanyService
 from services.quizz_logic import QuizzService
 from services.company_actions_logic import CompanyActionsService
-from db.database import get_db
+from db.database import get_db, get_redis
 
 
 router = APIRouter(
@@ -67,15 +68,19 @@ async def get_quizz(company_id: int,
     return await quizz_service.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
 
 
-@router.post("/{company_id}/{quizz_id}/pass", response_model=float)
+@router.post("/{company_id}/{quizz_id}/pass", response_model=dict)
 async def pass_quizz(company_id: int,
                     quizz_id: int, 
                     quizz_data: QuizzData,
+                    background_tasks: BackgroundTasks,
+                    redis = Depends(get_redis),
                     current_user: User = Depends(get_user),
                     db: Database = Depends(get_db)
-                    ) -> float:
+                    ) -> dict:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
-    return await quizz_service.pass_quizz(company_id=company_id,
+    record =  await quizz_service.pass_quizz(company_id=company_id,
                                           quizz_id=quizz_id,
                                           quizz_data=quizz_data)
+    background_tasks.add_task(set_cache, record, f"{current_user.id}_{quizz_id}", redis)
+    return record
