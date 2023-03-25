@@ -1,15 +1,19 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import FileResponse
+
 from fastapi_pagination import Page, Params, paginate
 
 from databases import Database
 
 
-from db.database import get_db
+from db.database import get_db, get_redis
 from schemas.user_schemas import User, UserCreate, UserUpdate
 from schemas.invite_schemas import InvitesList
 from schemas.request_schemas import RequestList
 from services.user_logic import UserService, UserActionsService
 from utils.auth import get_user
+from utils.caching import get_cache_for_user
+from utils.csv import generate_csv
 
 
 router = APIRouter(
@@ -115,3 +119,16 @@ async def leave_company(company_id: int,
     user_service = UserActionsService(db=db, current_user=current_user)
 
     await user_service.leave_company(company_id=company_id)
+
+
+@router.get("/me/records")
+async def get_records(csv: str | None = False,
+                      current_user: User = Depends(get_user),
+                      redis = Depends(get_redis),
+                    ):
+
+    records = await get_cache_for_user(current_user.id, redis=redis)
+    if csv:
+        csv_file = await generate_csv(file_name=csv, data=records)
+        return FileResponse(csv_file)
+    return records

@@ -82,5 +82,5 @@ async def pass_quizz(company_id: int,
     record =  await quizz_service.pass_quizz(company_id=company_id,
                                           quizz_id=quizz_id,
                                           quizz_data=quizz_data)
-    background_tasks.add_task(set_cache, record, f"{current_user.id}_{quizz_id}", redis)
+    background_tasks.add_task(set_cache, record, f"{current_user.id}_{quizz_id}_{company_id}", redis)
     return record

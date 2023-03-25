@@ -5,11 +5,12 @@ from fastapi import HTTPException
 from databases import Database
 
 
-from db.models import users, invites, company_members, requests
+from db.models import users, invites, company_members, requests, records
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 from schemas.request_schemas import RequestList
 from schemas.invite_schemas import InvitesList
+from schemas.records_schemas import Record, RecordsList
 
 
 class UserService:
@@ -101,6 +102,7 @@ class UserActionsService(UserService):
         self.invites = invites
         self.requests = requests
         self.company_members = company_members
+        self.records = records
 
     async def get_invites(self) -> InvitesList:
         query = self.invites.select().where(self.current_user.id == self.invites.c.user_id)
@@ -149,3 +151,8 @@ class UserActionsService(UserService):
     async def leave_company(self, company_id: int):
         query = self.company_members.delete().where(self.company_members.c.user_id == self.current_user.id)
         await self.db.execute(query=query)
+
+    async def get_records(self):
+        query = self.records.select(self.records.c.user_id == self.current_user.id)
+        records = await self.db.fetch_all(query=query)
+        return RecordsList(records=records)
