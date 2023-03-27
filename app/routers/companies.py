@@ -10,6 +10,7 @@ from schemas.quizz_schemas import QuizzList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
 from schemas.user_schemas import User, UserList
+from schemas.records_schemas import RecordsList
 from utils.auth import get_user
 from services.company_logic import CompanyService
 from services.company_actions_logic import CompanyActionsService
@@ -252,7 +253,7 @@ async def company_quizzes(company_id: int,
     return paginate(quizzes.quizzes, params)
 
 
-@router.get("/{company_id}/members/records")
+@router.get("/{company_id}/members/records", response_model=RecordsList)
 async def members_records(company_id: int,
                           csv: str | None = False,
                           user_id: int = None,
@@ -260,7 +261,7 @@ async def members_records(company_id: int,
                           current_user: User = Depends(get_user),
                           redis = Depends(get_redis),
                           db: Database = Depends(get_db)
-                        ):
+                        ) -> RecordsList:
     company_actions_service = CompanyActionsService(company_id=company_id, current_user=current_user,
                                             db=db
                                             )

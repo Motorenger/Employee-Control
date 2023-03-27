@@ -8,6 +8,7 @@ from schemas.company_schemas import Company, CompanyBase, CompanyList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
 from schemas.user_schemas import User, UserList
+from schemas.records_schemas import RecordsList
 from services.user_logic import UserService
 from utils.caching import get_cache_for_company
 
@@ -123,8 +124,8 @@ class CompanyActionsService(CompanyService):
         query = self.company_members.update().where(self.company_members.c.user_id == user_id).values({"admin": False})
         await self.db.execute(query)
 
-    async def get_members_records(self, user_id: int | None, quizz_id: int | None, redis):
+    async def get_members_records(self, user_id: int | None, quizz_id: int | None, redis) -> RecordsList:
         await self.check_for_existing(company_id=self.company_id, check_owner_admin=True)
 
-        records_redis = await get_cache_for_company(company_id=self.company_id, user_id=user_id, quizz_id=quizz_id, redis=redis)
-        return records_redis
+        records = await get_cache_for_company(company_id=self.company_id, user_id=user_id, quizz_id=quizz_id, redis=redis)
+        return RecordsList(records=records)
