@@ -132,8 +132,8 @@ class QuizzService(CompanyService):
             / (self.current_user.questions + questions_amount)
         ) * 10
 
-        query = self.records.insert().returning(self.records.c.record_average_result)
-        record_average_result = await self.db.execute(query=query, values=record)
+        query = self.records.insert().returning(self.records.c.id)
+        record_id = await self.db.execute(query=query, values=record)
 
         user_data = {
             "questions": self.current_user.questions + questions_amount,
@@ -156,4 +156,6 @@ class QuizzService(CompanyService):
             query = self.company_members.update().values(**member_data)
             await self.db.execute(query=query)
 
+        query = self.records.select().where(self.records.c.id == record_id)
+        record = await self.db.fetch_one(query=query)
         return Record(**record)

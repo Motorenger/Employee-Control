@@ -94,6 +94,6 @@ async def pass_quizz(
         company_id=company_id, quizz_id=quizz_id, quizz_data=quizz_data
     )
     await set_cache(
-        records=record, key=f"{current_user.id}_{quizz_id}", redis=redis
+        records=record.dict(), key=f"{current_user.id}_{quizz_id}", redis=redis
     )
     return record
