@@ -10,11 +10,16 @@ from alembic import context
 from utils.system_config import envs
 from db.models import metadata
 
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option("sqlalchemy.url", envs["DATABASE_URL"])
+if envs["ENVIRONMENT"] == "TESTING":
+    database = Database(envs["DATABASE_URL_TEST"], force_rollback=True)
+    config.set_main_option("sqlalchemy.url", envs["DATABASE_URL_TEST"])
+else:
+    config.set_main_option("sqlalchemy.url", envs["DATABASE_URL"])
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
