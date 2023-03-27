@@ -9,6 +9,7 @@ from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
 from schemas.quizz_schemas import QuizzList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
+from schemas.records_schemas import Record, RecordsList
 from schemas.user_schemas import User, UserList
 from utils.auth import get_user
 from services.company_logic import CompanyService
@@ -269,3 +270,30 @@ async def members_records(company_id: int,
         csv_file = await generate_csv(file_name=csv, data=records)
         return FileResponse(csv_file)
     return records
+
+
+@router.get("/{company_id}/analytics/averages", response_model=RecordsList)
+async def users_analytics_averages(company_id: int,
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> RecordsList:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    analytics = await company_actions_service.get_analytics_users_avarages()
+    return analytics
+
+
+@router.get("/{company_id}/analytics/", response_model=RecordsList)
+async def users_analytics(company_id: int,
+                          user_id: int | None = None,
+                          current_user: User = Depends(get_user),
+                          db: Database = Depends(get_db)
+                        ) -> RecordsList:
+    company_actions_service = CompanyActionsService(company_id=company_id,
+                                                    current_user=current_user,
+                                                    db=db
+                                                    )
+    analytics = await company_actions_service.get_analytics_users(user_id=user_id)
+    return analytics

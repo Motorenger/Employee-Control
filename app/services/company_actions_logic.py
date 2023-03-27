@@ -3,10 +3,11 @@ from fastapi import HTTPException
 from databases import Database
 
 from services.company_logic import CompanyService
-from db.models import companies, invites, requests, users, company_members
+from db.models import companies, invites, requests, users, company_members, records
 from schemas.company_schemas import Company, CompanyBase, CompanyList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
+from schemas.records_schemas import Record, RecordsList
 from schemas.user_schemas import User, UserList
 from services.user_logic import UserService
 from utils.caching import get_cache_for_company
@@ -21,6 +22,7 @@ class CompanyActionsService(CompanyService):
         self.requests = requests
         self.user_service= UserService(db=db, current_user=current_user)
         self.company_members = company_members
+        self.records = records
 
     async def get_invites(self) -> InvitesList:
         await self.check_for_existing(company_id=self.company_id, check_owner=True)
@@ -128,3 +130,27 @@ class CompanyActionsService(CompanyService):
 
         records_redis = await get_cache_for_company(company_id=self.company_id, user_id=user_id, quizz_id=quizz_id, redis=redis)
         return records_redis
+
+    async def get_analytics_users(self, user_id: int| None) -> RecordsList:
+        await self.check_for_existing(company_id=self.company_id, check_owner_admin=True)
+        if user_id:
+            query = self.records.select().where(
+                        self.records.c.company_id == self.company_id, self.records.c.user_id == user_id).order_by(
+                        self.records.c.user_id, self.records.c.created_at.desc())
+        else: 
+            query = self.records.select().where(self.records.c.company_id == self.company_id).order_by(
+                                                                            self.records.c.user_id).order_by(
+                                                                            self.records.c.created_at.desc()).distinct(
+                                                                            self.records.c.user_id)
+        analytics = await self.db.fetch_all(query=query)
+        return RecordsList(records=analytics)
+
+    async def get_analytics_users_avarages(self) -> RecordsList:
+        await self.check_for_existing(company_id=self.company_id, check_owner_admin=True)
+
+        query = self.records.select().where(
+                    self.records.c.company_id == self.company_id).order_by(
+                    self.records.c.user_id, self.records.c.created_at.desc())
+
+        analytics = await self.db.fetch_all(query=query)
+        return RecordsList(records=analytics)

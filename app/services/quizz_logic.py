@@ -97,10 +97,11 @@ class QuizzService(CompanyService):
             if question_core.question_numb in questions_dict.keys() and questions_dict.get(question_core.question_numb).answer == question_core.correct_answer:
                 correct += 1
         record["correct"] = correct
-        record["average_result"] = (correct / questions_amount) * 10
-        print(record)
-        query = self.records.insert().returning(self.records.c.average_result)
-        average_result = await self.db.execute(query=query, values=record)
+        record["record_average_result"] = (correct / questions_amount) * 10
+        record["user_average_result"] = ((self.current_user.correct + correct) / (self.current_user.questions + questions_amount)) * 10
+
+        query = self.records.insert().returning(self.records.c.record_average_result)
+        record_average_result = await self.db.execute(query=query, values=record)
 
         user_data = {
             "questions": self.current_user.questions + questions_amount,

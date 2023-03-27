@@ -7,7 +7,8 @@ class Record(BaseModel):
     user_id: int
     company_id: int
     quizz_id: int
-    average_result: float
+    record_average_result: float
+    user_average_result: float
     questions: int
     correct: int
     created_at: datetime.date

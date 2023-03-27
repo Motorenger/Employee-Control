@@ -152,7 +152,20 @@ class UserActionsService(UserService):
         query = self.company_members.delete().where(self.company_members.c.user_id == self.current_user.id)
         await self.db.execute(query=query)
 
-    async def get_records(self):
+    async def get_records(self) -> RecordsList:
         query = self.records.select(self.records.c.user_id == self.current_user.id)
         records = await self.db.fetch_all(query=query)
         return RecordsList(records=records)
+
+    async def get_analytics(self) -> RecordsList:
+        query = self.records.select().where(self.records.c.user_id == self.current_user.id).order_by(self.records.c.quizz_id)
+        analytics = await self.db.fetch_all(query=query)
+        return RecordsList(records=analytics)
+
+    async def get_analytics_quizzes(self) -> RecordsList:
+        query = self.records.select().where(self.records.c.user_id == self.current_user.id).order_by(
+                                                                                    self.records.c.quizz_id).order_by(
+                                                                                    self.records.c.created_at.desc()).distinct(
+                                                                                    self.records.c.quizz_id)
+        analytics = await self.db.fetch_all(query=query)
+        return RecordsList(records=analytics)
