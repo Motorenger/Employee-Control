@@ -8,6 +8,7 @@ from utils.auth import get_user
 from utils.caching import set_cache
 from schemas.quizz_schemas import QuizzCreate, QuizzEdit, Quizz, QuizzFull, QuizzData, QuestionList
 from schemas.user_schemas import User
+from schemas.records_schemas import Record
 from services.company_logic import CompanyService
 from services.quizz_logic import QuizzService
 from services.company_actions_logic import CompanyActionsService
@@ -68,7 +69,7 @@ async def get_quizz(company_id: int,
     return await quizz_service.retrieve_quizz(company_id=company_id, quizz_id=quizz_id)
 
 
-@router.post("/{company_id}/{quizz_id}/pass", response_model=dict)
+@router.post("/{company_id}/{quizz_id}/pass", response_model=Record)
 async def pass_quizz(company_id: int,
                     quizz_id: int, 
                     quizz_data: QuizzData,
@@ -76,11 +77,11 @@ async def pass_quizz(company_id: int,
                     redis = Depends(get_redis),
                     current_user: User = Depends(get_user),
                     db: Database = Depends(get_db)
-                    ) -> dict:
+                    ) -> Record:
     quizz_service = QuizzService(db=db, current_user=current_user)
 
     record =  await quizz_service.pass_quizz(company_id=company_id,
                                           quizz_id=quizz_id,
                                           quizz_data=quizz_data)
-    background_tasks.add_task(set_cache, record, f"{current_user.id}_{quizz_id}", redis)
+    await set_cache(records=record, key=f"{current_user.id}_{quizz_id}", redis=redis)
     return record
