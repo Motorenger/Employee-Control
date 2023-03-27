@@ -9,15 +9,11 @@ from schemas.token import Token
 token_auth_scheme = HTTPBearer()
 
 
-router = APIRouter(
-    prefix="/auth",
-    tags=["auth"]
-)
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=Token)
 async def login(user: User = Depends(authenticate_user)) -> Token:
-
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
 

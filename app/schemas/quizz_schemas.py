@@ -49,6 +49,7 @@ class Question(QuestionCreate):
     id: int
     question_numb: int
 
+
 class QuestionList(BaseModel):
     questions: list[Question]
 
