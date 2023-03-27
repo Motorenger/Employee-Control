@@ -9,6 +9,7 @@ from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
 from schemas.records_schemas import Record, RecordsList
 from schemas.user_schemas import User, UserList
+from schemas.records_schemas import RecordsList
 from services.user_logic import UserService
 from utils.caching import get_cache_for_company
 
@@ -162,15 +163,15 @@ class CompanyActionsService(CompanyService):
 
     async def get_members_records(
         self, user_id: int | None, quizz_id: int | None, redis
-    ):
+    ) -> RecordsList:
         await self.check_for_existing(
             company_id=self.company_id, check_owner_admin=True
         )
 
-        records_redis = await get_cache_for_company(
+        records = await get_cache_for_company(
             company_id=self.company_id, user_id=user_id, quizz_id=quizz_id, redis=redis
         )
-        return records_redis
+        return RecordsList(records=records)
 
     async def get_analytics_users(self, user_id: int | None) -> RecordsList:
         await self.check_for_existing(
