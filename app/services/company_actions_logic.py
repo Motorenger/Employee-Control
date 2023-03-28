@@ -7,7 +7,18 @@ from db.models import companies, invites, requests, users, company_members, reco
 from schemas.company_schemas import Company, CompanyBase, CompanyList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite, InvitesList
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
-from schemas.records_schemas import Record, RecordsList
+from schemas.records_schemas import (
+    Record,
+    RecordsList,
+    AnalyticsCompany,
+    UserAnalyticsCompany,
+    AnalyticsRecords,
+    AnalyticsUser,
+    QuizzesAnalyticsUser,
+    UserAnalytics,
+    QuizzAnalyticsUser,
+)
+
 from schemas.user_schemas import User, UserList
 from schemas.records_schemas import RecordsList
 from services.user_logic import UserService
@@ -186,6 +197,29 @@ class CompanyActionsService(CompanyService):
                 )
                 .order_by(self.records.c.user_id, self.records.c.created_at.desc())
             )
+            analytics = await self.db.fetch_all(query=query)
+
+            records = {}
+            for record in analytics:
+                if records.get(record.quizz_id) is not None:
+                    records[record.quizz_id].analytics.append(
+                        AnalyticsRecords(
+                            result=record.record_average_result,
+                            created_at=record.created_at,
+                        )
+                    )
+                else:
+                    records[record.quizz_id] = QuizzesAnalyticsUser(
+                        quizz_id=record.quizz_id,
+                        analytics=[
+                            AnalyticsRecords(
+                                result=record.record_average_result,
+                                created_at=record.created_at,
+                            )
+                        ],
+                    )
+
+            return AnalyticsUser(quizzes=[quizz for quizz in records.values()])
         else:
             query = (
                 self.records.select()
@@ -194,10 +228,15 @@ class CompanyActionsService(CompanyService):
                 .order_by(self.records.c.created_at.desc())
                 .distinct(self.records.c.user_id)
             )
-        analytics = await self.db.fetch_all(query=query)
-        return RecordsList(records=analytics)
 
-    async def get_analytics_users_avarages(self) -> RecordsList:
+            analytics = await self.db.fetch_all(query=query)
+            records = [
+                UserAnalytics(user_id=record.user_id, last_pass_time=record.created_at)
+                for record in analytics
+            ]
+            return AnalyticsCompany(users=records)
+
+    async def get_analytics_users_avarages(self) -> AnalyticsCompany:
         await self.check_for_existing(
             company_id=self.company_id, check_owner_admin=True
         )
@@ -209,4 +248,23 @@ class CompanyActionsService(CompanyService):
         )
 
         analytics = await self.db.fetch_all(query=query)
-        return RecordsList(records=analytics)
+        records = {}
+        for record in analytics:
+            if records.get(record.user_id) is not None:
+                records[record.user_id].records.append(
+                    AnalyticsRecords(
+                        result=record.user_average_result, created_at=record.created_at
+                    )
+                )
+            else:
+                records[record.user_id] = UserAnalyticsCompany(
+                    user_id=record.user_id,
+                    records=[
+                        AnalyticsRecords(
+                            result=record.user_average_result,
+                            created_at=record.created_at,
+                        )
+                    ],
+                )
+
+        return AnalyticsCompany(users=[user for user in records.values()])

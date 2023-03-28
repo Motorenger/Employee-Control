@@ -9,7 +9,7 @@ from schemas.company_schemas import Company, CompanyBase, CompanyUpdate
 from schemas.quizz_schemas import QuizzList
 from schemas.invite_schemas import InviteData, InviteCreate, Invite
 from schemas.request_schemas import RequestData, RequestCreate, RequestList
-from schemas.records_schemas import Record, RecordsList
+from schemas.records_schemas import Record, RecordsList, AnalyticsCompany
 from schemas.user_schemas import User, UserList
 from schemas.records_schemas import RecordsList
 from utils.auth import get_user
@@ -283,12 +283,12 @@ async def members_records(
     return records
 
 
-@router.get("/{company_id}/analytics/averages", response_model=RecordsList)
+@router.get("/{company_id}/analytics/averages", response_model=AnalyticsCompany)
 async def users_analytics_averages(
     company_id: int,
     current_user: User = Depends(get_user),
     db: Database = Depends(get_db),
-) -> RecordsList:
+) -> AnalyticsCompany:
     company_actions_service = CompanyActionsService(
         company_id=company_id, current_user=current_user, db=db
     )
@@ -296,13 +296,13 @@ async def users_analytics_averages(
     return analytics
 
 
-@router.get("/{company_id}/analytics/", response_model=RecordsList)
+@router.get("/{company_id}/analytics/")
 async def users_analytics(
     company_id: int,
     user_id: int | None = None,
     current_user: User = Depends(get_user),
     db: Database = Depends(get_db),
-) -> RecordsList:
+):
     company_actions_service = CompanyActionsService(
         company_id=company_id, current_user=current_user, db=db
     )

@@ -10,7 +10,7 @@ from db.database import get_db, get_redis
 from schemas.user_schemas import User, UserCreate, UserUpdate
 from schemas.invite_schemas import InvitesList
 from schemas.request_schemas import RequestList
-from schemas.records_schemas import Record, RecordsList
+from schemas.records_schemas import Record, RecordsList, AnalyticsUser
 from services.user_logic import UserService, UserActionsService
 from utils.auth import get_user
 from utils.caching import get_cache_for_user
@@ -154,19 +154,19 @@ async def get_records(
     return records
 
 
-@router.get("/me/analytics", response_model=RecordsList)
+@router.get("/me/analytics", response_model=AnalyticsUser)
 async def analytics(
     current_user: User = Depends(get_user), db: Database = Depends(get_db)
-) -> RecordsList:
+) -> AnalyticsUser:
     user_service = UserActionsService(db=db, current_user=current_user)
     analytics = await user_service.get_analytics()
     return analytics
 
 
-@router.get("/me/analytics-quizzes", response_model=RecordsList)
+@router.get("/me/analytics-quizzes", response_model=AnalyticsUser)
 async def analytics_quizzrs(
     current_user: User = Depends(get_user), db: Database = Depends(get_db)
-) -> RecordsList:
+) -> AnalyticsUser:
     user_service = UserActionsService(db=db, current_user=current_user)
     analytics = await user_service.get_analytics_quizzes()
     return analytics

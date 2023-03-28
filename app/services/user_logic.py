@@ -10,7 +10,14 @@ from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 from schemas.request_schemas import RequestList
 from schemas.invite_schemas import InvitesList
-from schemas.records_schemas import Record, RecordsList
+from schemas.records_schemas import (
+    Record,
+    RecordsList,
+    AnalyticsUser,
+    QuizzesAnalyticsUser,
+    AnalyticsRecords,
+    QuizzAnalyticsUser,
+)
 
 
 class UserService:
@@ -174,14 +181,33 @@ class UserActionsService(UserService):
         records = await self.db.fetch_all(query=query)
         return RecordsList(records=records)
 
-    async def get_analytics(self) -> RecordsList:
+    async def get_analytics(self) -> AnalyticsUser:
         query = (
             self.records.select()
             .where(self.records.c.user_id == self.current_user.id)
-            .order_by(self.records.c.quizz_id)
+            .order_by(self.records.c.quizz_id, self.records.c.created_at)
         )
         analytics = await self.db.fetch_all(query=query)
-        return RecordsList(records=analytics)
+        records = {}
+        for record in analytics:
+            if records.get(record.quizz_id) is not None:
+                records[record.quizz_id].analytics.append(
+                    AnalyticsRecords(
+                        result=record.record_average_result,
+                        created_at=record.created_at,
+                    )
+                )
+            else:
+                records[record.quizz_id] = QuizzesAnalyticsUser(
+                    quizz_id=record.quizz_id,
+                    analytics=[
+                        AnalyticsRecords(
+                            result=record.record_average_result,
+                            created_at=record.created_at,
+                        )
+                    ],
+                )
+        return AnalyticsUser(quizzes=[quizz for quizz in records.values()])
 
     async def get_analytics_quizzes(self) -> RecordsList:
         query = (
@@ -192,4 +218,9 @@ class UserActionsService(UserService):
             .distinct(self.records.c.quizz_id)
         )
         analytics = await self.db.fetch_all(query=query)
-        return RecordsList(records=analytics)
+        records = [
+            QuizzAnalyticsUser(quizz_id=quizz.quizz_id, last_pass_date=quizz.created_at)
+            for quizz in analytics
+        ]
+
+        return AnalyticsUser(quizzes=records)
