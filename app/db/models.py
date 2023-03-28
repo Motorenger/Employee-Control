@@ -96,7 +96,7 @@ questions = sqlalchemy.Table(
 )
 
 
-# Quizz completion recorn
+# Quizz completion record model
 records = sqlalchemy.Table(
     "records",
     metadata,
@@ -109,4 +109,16 @@ records = sqlalchemy.Table(
     sqlalchemy.Column("questions", sqlalchemy.Integer),
     sqlalchemy.Column("correct", sqlalchemy.Integer),
     sqlalchemy.Column("created_at", sqlalchemy.Date),
+)
+
+
+# Notifications model
+notifications = sqlalchemy.Table(
+    "notifications",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
+    sqlalchemy.Column("time", sqlalchemy.DateTime),
+    sqlalchemy.Column("message", sqlalchemy.Text),
+    sqlalchemy.Column("status", sqlalchemy.Boolean)
 )

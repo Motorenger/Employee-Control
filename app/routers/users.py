@@ -11,6 +11,7 @@ from schemas.user_schemas import User, UserCreate, UserUpdate
 from schemas.invite_schemas import InvitesList
 from schemas.request_schemas import RequestList
 from schemas.records_schemas import Record, RecordsList, AnalyticsUser
+from schemas.notifications_schemas import ListNotification
 from services.user_logic import UserService, UserActionsService
 from utils.auth import get_user
 from utils.caching import get_cache_for_user
@@ -164,9 +165,30 @@ async def analytics(
 
 
 @router.get("/me/analytics-quizzes", response_model=AnalyticsUser)
-async def analytics_quizzrs(
+async def analytics_quizzes(
     current_user: User = Depends(get_user), db: Database = Depends(get_db)
 ) -> AnalyticsUser:
     user_service = UserActionsService(db=db, current_user=current_user)
     analytics = await user_service.get_analytics_quizzes()
     return analytics
+
+
+@router.get("/me/notifications", response_model=ListNotification)
+async def analytics_quizzrs(
+    current_user: User = Depends(get_user), db: Database = Depends(get_db)
+) -> ListNotification:
+    user_service = UserActionsService(db=db, current_user=current_user)
+    notifications = await user_service.get_notifications()
+    return notifications
+
+
+@router.post("/me/notification/{notification_id}", status_code=200)
+async def analytics_quizzrs(
+    notification_id: int,
+    current_user: User = Depends(get_user),
+    db: Database = Depends(get_db),
+):
+    user_service = UserActionsService(db=db, current_user=current_user)
+    notifications = await user_service.mark_as_read_notification(
+        notification_id=notification_id
+    )

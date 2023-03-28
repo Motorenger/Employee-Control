@@ -5,11 +5,12 @@ from fastapi import HTTPException
 from databases import Database
 
 
-from db.models import users, invites, company_members, requests, records
+from db.models import users, invites, company_members, requests, records, notifications
 from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 from schemas.request_schemas import RequestList
 from schemas.invite_schemas import InvitesList
+from schemas.notifications_schemas import Notification, ListNotification
 from schemas.records_schemas import (
     Record,
     RecordsList,
@@ -25,6 +26,7 @@ class UserService:
         self.db = db
         self.users = users
         self.current_user = current_user
+        self.notifications = notifications
 
     async def check_for_existing(self, user_id: int = None, email: str = None) -> bool:
         if user_id:
@@ -224,3 +226,32 @@ class UserActionsService(UserService):
         ]
 
         return AnalyticsUser(quizzes=records)
+
+    async def get_notifications(self) -> ListNotification:
+        query = self.notifications.select().where(
+            self.notifications.c.user_id == self.current_user.id
+        )
+        notifications = await self.db.fetch_all(query=query)
+
+        return ListNotification(
+            notifications=[
+                Notification(**notification) for notification in notifications
+            ]
+        )
+
+    async def mark_as_read_notification(self, notification_id: int):
+        query = self.notifications.select().where(
+            self.notifications.c.id == notification_id
+        )
+        notification = await self.db.fetch_one(query=query)
+        if notification is None:
+            raise HTTPException(status_code=404, detail="No such notification")
+        elif notification.user_id != self.current_user.id:
+            raise HTTPException(status_code=403, detail="Not yout notification")
+
+        query = (
+            self.notifications.update()
+            .where(self.notifications.c.id == notification_id)
+            .values(status=True)
+        )
+        await self.db.execute(query=query)

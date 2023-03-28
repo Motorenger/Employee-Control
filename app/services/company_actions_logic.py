@@ -184,7 +184,9 @@ class CompanyActionsService(CompanyService):
         )
         return RecordsList(records=records)
 
-    async def get_analytics_users(self, user_id: int | None) -> AnalyticsCompany | AnalyticsUser:
+    async def get_analytics_users(
+        self, user_id: int | None
+    ) -> AnalyticsCompany | AnalyticsUser:
         await self.check_for_existing(
             company_id=self.company_id, check_owner_admin=True
         )
