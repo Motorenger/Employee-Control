@@ -100,6 +100,7 @@ questions = sqlalchemy.Table(
 records = sqlalchemy.Table(
     "records",
     metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("user_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"), nullable=False),
     sqlalchemy.Column("company_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("companies.id"), nullable=False),
     sqlalchemy.Column("quizz_id", sqlalchemy.Integer, sqlalchemy.ForeignKey("quizzes.id"), nullable=False),
