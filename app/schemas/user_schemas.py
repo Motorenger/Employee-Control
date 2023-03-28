@@ -25,7 +25,7 @@ class User(UserBase):
     is_active: bool | None = None
     date_joined: datetime | None = None
     questions: int
-    correct: int 
+    correct: int
 
     class Config:
         orm_mode = True

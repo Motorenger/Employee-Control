@@ -34,7 +34,7 @@ async def test_pass_quizz_success_incorrect(ac: AsyncClient, users_tokens, quizz
     response = await ac.post("quizzes/2/2/pass", headers=headers, json=quizz_pass_payload)
 
     assert response.status_code == 200
-    assert response.json() == 0.0
+    assert response.json().get("record_average_result") == 0.0
 
 async def test_pass_quizz_success_correct(ac: AsyncClient, users_tokens, quizz_pass_payload_correct):
     headers = {
@@ -43,4 +43,4 @@ async def test_pass_quizz_success_correct(ac: AsyncClient, users_tokens, quizz_p
     response = await ac.post("quizzes/2/2/pass", headers=headers, json=quizz_pass_payload_correct)
 
     assert response.status_code == 200
-    assert response.json() == 10
+    assert response.json().get("record_average_result") == 10

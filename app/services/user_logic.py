@@ -10,7 +10,14 @@ from utils.hashing import get_password_hash
 from schemas.user_schemas import UserCreate, User, UserUpdate, UserList, UserInDB
 from schemas.request_schemas import RequestList
 from schemas.invite_schemas import InvitesList
-from schemas.records_schemas import Record, RecordsList
+from schemas.records_schemas import (
+    Record,
+    RecordsList,
+    AnalyticsUser,
+    QuizzesAnalyticsUser,
+    AnalyticsRecords,
+    QuizzAnalyticsUser,
+)
 
 
 class UserService:
@@ -35,11 +42,13 @@ class UserService:
         users = await self.db.fetch_all(query)
         return UserList(users=users)
 
-    async def retrieve_user(self, user_id: int = None,
-                            username: str = None,
-                            email: str = None,
-                            password: bool = False
-                        ) -> User:
+    async def retrieve_user(
+        self,
+        user_id: int = None,
+        username: str = None,
+        email: str = None,
+        password: bool = False,
+    ) -> User:
         if user_id:
             query = self.users.select().where(self.users.c.id == user_id)
         elif username:
@@ -79,7 +88,11 @@ class UserService:
             raise HTTPException(status_code=404, detail="User not found")
         if user_id != self.current_user.id:
             raise HTTPException(status_code=403, detail="It's not your account")
-        query = self.users.update().where(self.users.c.id == user_id).values(username=user_data.username)
+        query = (
+            self.users.update()
+            .where(self.users.c.id == user_id)
+            .values(username=user_data.username)
+        )
         await self.db.execute(query)
 
         query = self.users.select().where(self.users.c.id == user_id)
@@ -105,7 +118,9 @@ class UserActionsService(UserService):
         self.records = records
 
     async def get_invites(self) -> InvitesList:
-        query = self.invites.select().where(self.current_user.id == self.invites.c.user_id)
+        query = self.invites.select().where(
+            self.current_user.id == self.invites.c.user_id
+        )
         invites = await self.db.fetch_all(query=query)
 
         return InvitesList(invites=invites)
@@ -118,9 +133,13 @@ class UserActionsService(UserService):
         if invite.user_id != self.current_user.id:
             raise HTTPException(status_code=400, detail="It is not your invite")
         query = self.company_members.insert()
-        values = {"user_id": invite.user_id, "company_id": invite.company_id,
-                  "admin": False, "questions": 0, "correct": 0
-                  }
+        values = {
+            "user_id": invite.user_id,
+            "company_id": invite.company_id,
+            "admin": False,
+            "questions": 0,
+            "correct": 0,
+        }
 
         await self.db.execute(query=query, values=values)
 
@@ -133,26 +152,75 @@ class UserActionsService(UserService):
         if invite is None:
             raise HTTPException(status_code=404, detail="Invite not found")
         if invite.user_id != self.current_user.id:
-            raise HTTPException(status_code=400, detail="User does not have an invite to the company")
+            raise HTTPException(
+                status_code=400, detail="User does not have an invite to the company"
+            )
         query = self.invites.delete().where(self.invites.c.id == invite_id)
         await self.db.execute(query)
 
     async def get_requests(self) -> RequestList:
-        query = self.requests.select().where(self.requests.c.user_id == self.current_user.id)
+        query = self.requests.select().where(
+            self.requests.c.user_id == self.current_user.id
+        )
         requests = await self.db.fetch_all(query=query)
 
         return RequestList(requests=requests)
 
     async def decline_request(self, request_id: int):
-        
         query = self.requests.delete().where(self.requests.c.id == request_id)
         await self.db.execute(query)
 
     async def leave_company(self, company_id: int):
-        query = self.company_members.delete().where(self.company_members.c.user_id == self.current_user.id)
+        query = self.company_members.delete().where(
+            self.company_members.c.user_id == self.current_user.id
+        )
         await self.db.execute(query=query)
 
-    async def get_records(self):
+    async def get_records(self) -> RecordsList:
         query = self.records.select(self.records.c.user_id == self.current_user.id)
         records = await self.db.fetch_all(query=query)
         return RecordsList(records=records)
+
+    async def get_analytics(self) -> AnalyticsUser:
+        query = (
+            self.records.select()
+            .where(self.records.c.user_id == self.current_user.id)
+            .order_by(self.records.c.quizz_id, self.records.c.created_at)
+        )
+        analytics = await self.db.fetch_all(query=query)
+        records = {}
+        for record in analytics:
+            if records.get(record.quizz_id) is not None:
+                records[record.quizz_id].analytics.append(
+                    AnalyticsRecords(
+                        result=record.record_average_result,
+                        created_at=record.created_at,
+                    )
+                )
+            else:
+                records[record.quizz_id] = QuizzesAnalyticsUser(
+                    quizz_id=record.quizz_id,
+                    analytics=[
+                        AnalyticsRecords(
+                            result=record.record_average_result,
+                            created_at=record.created_at,
+                        )
+                    ],
+                )
+        return AnalyticsUser(quizzes=[quizz for quizz in records.values()])
+
+    async def get_analytics_quizzes(self) -> RecordsList:
+        query = (
+            self.records.select()
+            .where(self.records.c.user_id == self.current_user.id)
+            .order_by(self.records.c.quizz_id)
+            .order_by(self.records.c.created_at.desc())
+            .distinct(self.records.c.quizz_id)
+        )
+        analytics = await self.db.fetch_all(query=query)
+        records = [
+            QuizzAnalyticsUser(quizz_id=quizz.quizz_id, last_pass_date=quizz.created_at)
+            for quizz in analytics
+        ]
+
+        return AnalyticsUser(quizzes=records)
