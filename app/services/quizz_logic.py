@@ -71,11 +71,13 @@ class QuizzService(CompanyService):
             "status": False,
         }
 
-        notifications = []
+        notifications = [{
+            "time": datetime.now(),
+            "message": "New quizz!!!",
+            "status": False,
+            "user_id": member.user_id
+        } for member in members if members]
         query = self.notifications.insert()
-        for member in members:
-            notification_d["user_id"] = member.user_id
-            notifications.append(notification_d)
         await self.db.execute_many(query=query, values=notifications)
 
         return Quizz(
