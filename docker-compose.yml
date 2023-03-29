@@ -15,6 +15,17 @@ services:
     image: redis:alpine
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
+  worker:
+    build: .
+    command: celery worker --app=worker.celery --loglevel=info
+    volumes:
+      - ./:/usr/src/backend/
+    environment:
+      - CELERY_BROKER_URL=${REDIS_URL}
+      - CELERY_RESULT_BACKEND=${REDIS_URL}
+    depends_on:
+      - backend
+      - redis
   db:
     image: postgres:15.1
     volumes:

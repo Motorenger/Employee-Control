@@ -34,3 +34,4 @@ fastapi-pagination
 pytest-env
 pyjwt[crypto]
 python-multipart
+celery
