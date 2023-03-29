@@ -5,7 +5,7 @@ from databases import Database
 from fastapi import HTTPException
 
 from services.company_logic import CompanyService
-from db.models import questions, records, users
+from db.models import questions, records, users, company_members, notifications
 from schemas.quizz_schemas import (
     QuizzCreate,
     QuizzEdit,
@@ -25,8 +25,10 @@ class QuizzService(CompanyService):
         self.questions = questions
         self.records = records
         self.users = users
+        self.company_members = company_members
+        self.notifications = notifications
 
-    async def create_questions(self, question, quizz_id: int, question_numb):
+    async def create_questions(self, question, quizz_id: int, question_numb: int):
         if len(question.answers) < 2:
             raise HTTPException(status_code=422, detail="At least 2 answers")
         question_d = {
@@ -58,6 +60,20 @@ class QuizzService(CompanyService):
                 question=question, quizz_id=quizz_id, question_numb=question_numb
             )
 
+        query = self.company_members.select().where(
+            self.company_members.c.company_id == company_id
+        )
+        members = await self.db.fetch_all(query=query)
+
+        notifications = [{
+            "time": datetime.now(),
+            "message": "New quizz!!!",
+            "status": False,
+            "user_id": member.user_id
+        } for member in members if members]
+        query = self.notifications.insert()
+        await self.db.execute_many(query=query, values=notifications)
+
         return Quizz(
             **await self.db.fetch_one(
                 query=self.quizzes.select().where(self.quizzes.c.id == quizz_id)
@@ -87,7 +103,7 @@ class QuizzService(CompanyService):
             .where(self.quizzes.c.id == quizz_id)
             .values(**update_data)
         )
-        await self.db.execute(query)
+        await self.db.execute(query=query)
 
         query = self.quizzes.select().where(self.quizzes.c.id == quizz_id)
         quizz = await self.db.fetch_one(query=query)
