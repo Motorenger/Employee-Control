@@ -65,12 +65,6 @@ class QuizzService(CompanyService):
         )
         members = await self.db.fetch_all(query=query)
 
-        notification_d = {
-            "time": datetime.now(),
-            "message": "New quizz!!!",
-            "status": False,
-        }
-
         notifications = [{
             "time": datetime.now(),
             "message": "New quizz!!!",
