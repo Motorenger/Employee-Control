@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from databases import Database
 
@@ -176,3 +176,15 @@ class QuizzService(CompanyService):
         query = self.records.select().where(self.records.c.id == record_id)
         record = await self.db.fetch_one(query=query)
         return Record(**record)
+    
+    async def check_passing(self):
+        records = await self.db.fetch_all(query=self.records.select())
+
+        quizzes = {}
+        for record in records:
+            if quizzes.get(record.quizz_id) is None:
+                quizzes[record.quizz_id] = await self.db.fetch_one(query=self.quizzes.select().where(self.quizzes.c.id == record.quizz_id))
+            quizz = quizzes[record.quizz_id]
+            if datetime.now().date() - timedelta(days=quizz.pass_freq) > record.created_at:
+                
+

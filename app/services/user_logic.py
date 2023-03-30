@@ -20,7 +20,6 @@ from schemas.records_schemas import (
     QuizzAnalyticsUser,
 )
 
-
 class UserService:
     def __init__(self, db: Database, current_user: User | None = None):
         self.db = db

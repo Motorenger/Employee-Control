@@ -1,8 +1,10 @@
 import logging
+import datetime
 
 import uvicorn
 
 from fastapi import FastAPI
+from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
@@ -12,9 +14,9 @@ from core.log_config import init_loggers
 from routers import users, auth, companies, quizzes
 
 
-init_loggers()
-
 app = FastAPI()
+
+init_loggers()
 
 log = logging.getLogger("app_logger")
 
@@ -30,6 +32,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -55,10 +58,12 @@ async def shutdown():
 @app.get("/")
 async def health_check():
     log.info("I'm logging")
+
     return {
         "status_code": 200,
         "detail": "ok",
         "result": "working",
+        "result": datetime.datetime.now(),
     }
 
 
@@ -68,4 +73,5 @@ if __name__ == "__main__":
                 host=envs["HOST"],
                 port=envs["PORT"],
                 reload=True,
+                lifespan="auto"
                 )
