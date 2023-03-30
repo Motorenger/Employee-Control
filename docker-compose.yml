@@ -17,7 +17,7 @@ services:
       - ${REDIS_PORT}:${REDIS_PORT}
   celery:
     build: .
-    command: celery -A app.celery_base beat -l DEBUG
+    command: celery -A app.celery_base --workdir /app beat -l DEBUG
     volumes:
       - ./:/usr/src/backend/
     env_file:
