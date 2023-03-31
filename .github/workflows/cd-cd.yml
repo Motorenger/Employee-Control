@@ -43,10 +43,7 @@ jobs:
           cache: 'pip'
       - name: install dependencies
         run: |
-          python3 -m venv venv
-          . venv/bin/activate
           pip install -r requirements.txt
       - name: run tests
         run: |
-          . venv/bin/activate
-          coverage run -m pytest -vv -n auto tests
+         coverage run -m pytest -vv -n auto tests
