@@ -1,10 +1,9 @@
 import logging
-import datetime
+from datetime import datetime
 
 import uvicorn
 
 from fastapi import FastAPI
-from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 
@@ -12,9 +11,10 @@ from utils.system_config import envs
 from db.database import get_db
 from core.log_config import init_loggers
 from routers import users, auth, companies, quizzes
+from utils.scheduling import middleware
 
 
-app = FastAPI()
+app = FastAPI(middleware=middleware)
 
 init_loggers()
 

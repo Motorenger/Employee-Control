@@ -15,15 +15,6 @@ services:
     image: redis:alpine
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
-  celery:
-    build: .
-    command: celery -A app.celery_base --workdir /app beat -l DEBUG
-    volumes:
-      - ./:/usr/src/backend/
-    env_file:
-      - ./.env
-    depends_on:
-      - redis
   db:
     image: postgres:15.1
     volumes:

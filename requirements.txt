@@ -33,4 +33,4 @@ passlib[bcrypt]
 fastapi-pagination
 pytest-env
 pyjwt[crypto]
-celery
+APScheduler==4.0.0a2
