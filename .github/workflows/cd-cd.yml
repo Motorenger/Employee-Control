@@ -1,0 +1,52 @@
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    env:
+      HOST: ${{ vars.HOST }}
+      PORT: ${{ vars.PORT }}
+      DATABASE_URL: ${{ vars.DATABASE_URL }}
+      REDIS_URL: ${{ vars.REDIS_URL }}
+      REDIS_PORT: ${{ vars.REDIS_PORT }}
+      SECRET_KEY: ${{ vars.SECRET_KEY }}
+      DOMAIN: ${{ vars.DOMAIN }}
+      API_AUDIENCE: ${{ vars.API_AUDIENCE }}
+      ALGORITHM_AUTH_2: ${{ vars.ALGORITHM_AUTH_2 }}
+      ALGORITHM_AUTH_0: ${{ vars.ALGORITHM_AUTH_0 }}
+      ISSUER: ${{ vars.ISSUER }}
+      JWKS_URL: ${{ vars.JWKS_URL }}
+      POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+    services:
+      postgres:
+        image: postgres:15.1
+        env:
+          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
+          POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+        ports:
+          - ${{ vars.POSTGRES_PORT }}
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:latest
+        ports:
+          - ${{ vars.REDIS_PORT }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: install dependencies
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install -r requirements.txt
+      - name: run tests
+        run: |
+          . venv/bin/activate
+          coverage run -m pytest -vv -n auto tests

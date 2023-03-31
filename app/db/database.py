@@ -6,11 +6,7 @@ from databases import Database
 
 from utils.system_config import envs
 
-
-if envs["ENVIRONMENT"] == "TESTING":
-    database = Database(envs["DATABASE_URL_TEST"], force_rollback=True)
-else:
-    database = Database(envs["DATABASE_URL"])
+database = Database(envs["DATABASE_URL"])
 
 
 def get_db() -> Database:
