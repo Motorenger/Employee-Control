@@ -24,6 +24,7 @@ jobs:
         ALGORITHM_AUTH_0: RS256
         ISSUER: https://dev-wvvxa6vlw7mfytea.eu.auth0.com/
         JWKS_URL: https://dev-wvvxa6vlw7mfytea.eu.auth0.com/.well-known/jwks.json
+        ENVIRONMENT: LOCAL
       services:
         postgres:
           image: postgres:15.1
