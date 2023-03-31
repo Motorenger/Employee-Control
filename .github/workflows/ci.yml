@@ -50,4 +50,4 @@ jobs:
             pip install -r requirements.txt
         - name: run tests
           run: |
-            pytest -vv auto
+            pytest -vv auto tests
