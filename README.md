@@ -21,7 +21,7 @@ If you are trying to use this project for the first time, you can get up and run
 
 Make sure you have **Python 3.x**.
 
-Clone the repository using the following command
+Clone the repository using the following command 
 
 ```
 git clone https://github.com/Motorenger/Meduzzen_Internship.git
