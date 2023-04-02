@@ -19,15 +19,17 @@ jobs:
       ALGORITHM_AUTH_0: ${{ vars.ALGORITHM_AUTH_0 }}
       ISSUER: ${{ vars.ISSUER }}
       JWKS_URL: ${{ vars.JWKS_URL }}
+      POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+      POSTGRES_PORT_TEST: ${{ vars.POSTGRES_PORT_TEST }}
     services:
-      postgres:
+      db_test:
         image: postgres:15.1
         env:
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}
           POSTGRES_USER: ${{ vars.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
         ports:
-          - 5432:5432
+          - ${{ vars.POSTGRES_PORT_TEST }}:${{ vars.POSTGRES_PORT_TEST }}
       redis:
         image: redis:latest
         ports:

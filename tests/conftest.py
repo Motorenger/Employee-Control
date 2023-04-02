@@ -21,7 +21,7 @@ from app.utils.system_config import envs
 from app.main import get_db
 
 
-engine = create_async_engine(envs["DATABASE_URL"], poolclass=NullPool)
+engine = create_async_engine(envs["DATABASE_URL_TEST"], poolclass=NullPool)
 
 
 @pytest.fixture(scope="session")
