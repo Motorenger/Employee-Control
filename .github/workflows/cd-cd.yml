@@ -28,7 +28,6 @@ jobs:
           POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
         ports:
           - ${{ vars.POSTGRES_PORT }}:${{ vars.POSTGRES_PORT }}
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
         image: redis:latest
         ports:
