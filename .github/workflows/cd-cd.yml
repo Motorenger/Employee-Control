@@ -10,6 +10,7 @@ jobs:
       HOST: ${{ vars.HOST }}
       PORT: ${{ vars.PORT }}
       DATABASE_URL: ${{ vars.DATABASE_URL }}
+      DATABASE_URL_TEST: ${{ vars.DATABASE_URL_TEST }}
       REDIS_URL: ${{ vars.REDIS_URL }}
       REDIS_PORT: ${{ vars.REDIS_PORT }}
       SECRET_KEY: ${{ vars.SECRET_KEY }}
