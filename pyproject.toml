@@ -5,5 +5,5 @@ pythonpath = [
 asyncio_mode="auto"
 
 env = [
-  "ENVIRONMENT=TESTING"
+  "ENVIRONMENT=LOCAL"
 ]
