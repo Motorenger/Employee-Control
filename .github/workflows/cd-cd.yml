@@ -20,7 +20,7 @@ jobs:
       ISSUER: ${{ vars.ISSUER }}
       JWKS_URL: ${{ vars.JWKS_URL }}
     services:
-      test_db:
+      postgres:
         image: postgres:15.1
         env:
           POSTGRES_DB: ${{ vars.POSTGRES_DB }}

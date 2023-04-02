@@ -9,25 +9,25 @@ services:
     env_file:
       - ./.env
     depends_on:
-      - db
+      - postgres
       - redis
   redis:
     image: redis:alpine
     ports:
       - ${REDIS_PORT}:${REDIS_PORT}
-  db:
-    image: postgres:15.1
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    env_file:
-      - ./.env.db
-    ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
-  db_test:
-    image: postgres:15.1
-    env_file:
-      - ./.env.db
-    ports:
-      - ${POSTGRES_PORT_TEST}:${POSTGRES_PORT_TEST}
+  # db:
+  #   image: postgres:15.1
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   env_file:
+  #     - ./.env.db
+  #   ports:
+  #     - ${POSTGRES_PORT}:${POSTGRES_PORT}
+  postgres:
+        image: postgres:15.1
+        env_file:
+          - ./.env.db
+        ports:
+          - ${POSTGRES_PORT}:${POSTGRES_PORT}
 volumes:
   postgres_data:
