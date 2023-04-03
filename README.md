@@ -13,7 +13,12 @@ If you are trying to use this project for the first time, you can get up and run
 |           [**uvicorn**](https://pypi.org/project/uvicorn/)          |      **0.20.0**       |
 |           [**databases**](https://pypi.org/project/databases/)        |      **0.7.0**       |
 |           [**aioredis[asyncpg]**](https://pypi.org/project/aioredis/)        |      **2.0.1**       |
-
+|           [**sqlalchemy**](https://pypi.org/project/SQLAlchemy/)        |      **1.4.42**       |
+|           [**pytest-asyncio**](https://pypi.org/project/pytest-asyncio/)        |      **0.20.3**       |
+|           [**asyncpg**](https://pypi.org/project/asyncpg/)        |      **0.27.0**       |
+|           [**alembic**](https://pypi.org/project/alembic/)        |      **1.9.4**       |
+|           [**APScheduler**](https://pypi.org/project/APScheduler/)        |      **4.0.0a2**       |
+|           [**pyjwt[crypto]**](https://pypi.org/project/pyjwt/)        |      **2.6.0**       |
 
 </div>
 
@@ -28,21 +33,22 @@ git clone https://github.com/Motorenger/Meduzzen_Internship.git
 or 
 bash git clone https://github.com/Motorenger/Meduzzen_Internship.git
 
-# After cloning, move into the directory having the project files using the change directory command
+# After cloning, move into the project directory
 cd Meduzzen_Internship
 ```
 
-Build Docker image
+Run the project
 ```
-docker build -t app .
-```
-
-Run conteiner
-```
-docker run --name my_app -p 80:80 app
+docker-compose up  --build
 ```
 
-Run test
+Apply migrations
+```
+docker exec mycontainer alembic upgrade head
+```
+
+
+Run tests
 ```
 docker exec mycontainer pytest -v
 ```
