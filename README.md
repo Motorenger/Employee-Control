@@ -1,9 +1,10 @@
-### Meduzzen_Internship
-
-## Getting Started 
-
-If you are trying to use this project for the first time, you can get up and running by following these steps.
-
+# Employee-Control
+This is a Rest API, that designed for companies. It provides such functionalities as Creating company and inviting members.</br>
+Also they can request acceptance to the company. The main workflow are quizzes which company owners or admin's are able to create.</br>
+Then members can pass the quizzes. There are detailed statistics with many parameters for specific companies as well as personalized for each user.</br>
+Every endpoint supports validation and authentication. Moreover there is a scheduled job for every quizz</br>
+to check whether all company members passed on time which sends notifications.</br>
+Those have multiple uses across API. Also every endpoint is covered with tests.</br>
 ## Requirements 
 <div align="center">
 
@@ -22,6 +23,10 @@ If you are trying to use this project for the first time, you can get up and run
 
 </div>
 
+## Getting Started 
+
+Follow these steps to run the project
+
 ## Install and Run
 
 Make sure you have **Python 3.x**.
@@ -39,7 +44,7 @@ cd Meduzzen_Internship
 
 Run the project
 ```
-docker-compose up  --build
+docker-compose up --build
 ```
 
 Apply migrations
