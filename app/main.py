@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import uvicorn
 
@@ -10,11 +11,12 @@ from utils.system_config import envs
 from db.database import get_db
 from core.log_config import init_loggers
 from routers import users, auth, companies, quizzes
+from utils.scheduling import middleware
 
+
+app = FastAPI(middleware=middleware)
 
 init_loggers()
-
-app = FastAPI()
 
 log = logging.getLogger("app_logger")
 
@@ -30,6 +32,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -55,10 +58,12 @@ async def shutdown():
 @app.get("/")
 async def health_check():
     log.info("I'm logging")
+
     return {
         "status_code": 200,
         "detail": "ok",
         "result": "working",
+        "result": datetime.datetime.now(),
     }
 
 
@@ -68,4 +73,5 @@ if __name__ == "__main__":
                 host=envs["HOST"],
                 port=envs["PORT"],
                 reload=True,
+                lifespan="auto"
                 )
