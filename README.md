@@ -34,12 +34,12 @@ Make sure you have **Python 3.x**.
 Clone the repository using the following command 
 
 ```
-git clone https://github.com/Motorenger/Meduzzen_Internship.git
+git clone https://github.com/Motorenger/Employee-Control.git
 or 
-bash git clone https://github.com/Motorenger/Meduzzen_Internship.git
+bash git clone https://github.com/Motorenger/Employee-Control.git
 
 # After cloning, move into the project directory
-cd Meduzzen_Internship
+cd Employee-Control
 ```
 
 Run the project
